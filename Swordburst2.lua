@@ -257,32 +257,56 @@ local Window = Library:CreateWindow({
 
 local Main = Window:AddTab('Main', 'user')
 
--- 🔔 Onglet Notifications
-local Notifications = Window:AddTab('Notifications', 'bell')
-local NotifGroup = Notifications:AddLeftGroupbox('Notifications Discord')
-
--- 🌐 Webhook unique pour tous les messages
-NotifGroup:AddInput('GlobalWebhook', {
-    Text = 'Webhook Discord',
-    Placeholder = 'https://discord.com/api/webhooks/...'
-}):OnChanged(function()
-    sendTestMessage(Options.GlobalWebhook.Value)
-end)
-
--- 🔔 Ping dans les messages (optionnel)
-NotifGroup:AddToggle('PingInMessage', {
-    Text = 'Ping dans le message'
+-- Notifications Tab
+local NotificationsTab = Window:AddTab({
+    Title = "Notifications",
+    Icon = "bell" -- tu peux changer l’icône si ta lib en a d’autres
 })
 
--- 🧪 Bouton de test pour le webhook
-NotifGroup:AddButton({
-    Text = 'Envoyer un test',
-    Func = function()
-        if not Options.GlobalWebhook.Value or Options.GlobalWebhook.Value == '' then
-            Library:Notify('⚠️ Configure d’abord ton webhook Discord.')
-            return
+-- Section Discord
+local DiscordSection = NotificationsTab:AddSection({
+    Title = "Discord"
+})
+
+DiscordSection:AddInput("Webhook URL", {
+    Default = "",
+    Placeholder = "https://discord.com/api/webhooks/...",
+    Numeric = false,
+    Finished = true,
+    Callback = function(value)
+        getgenv().WebhookURL = value
+        print("Webhook défini sur : " .. value)
+    end
+})
+
+DiscordSection:AddToggle("Activer les notifications Discord", {
+    Text = "Envoyer les notifications Discord",
+    Default = false,
+    Callback = function(state)
+        getgenv().DiscordNotify = state
+        if state then
+            print("✅ Notifications Discord activées")
+        else
+            print("❌ Notifications Discord désactivées")
         end
-        sendTestMessage(Options.GlobalWebhook.Value)
+    end
+})
+
+DiscordSection:AddButton({
+    Text = "Tester l’envoi",
+    Func = function()
+        if getgenv().WebhookURL and getgenv().WebhookURL ~= "" then
+            request({
+                Url = getgenv().WebhookURL,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = game:GetService("HttpService"):JSONEncode({
+                    content = "🔔 Test de notification Discord réussi !"
+                })
+            })
+        else
+            warn("⚠️ Aucun webhook configuré.")
+        end
     end
 })
 
@@ -2404,7 +2428,7 @@ Inventory.ChildAdded:Connect(function(item)
     dropList[FormattedItem] = item
     table.insert(Options.DropList.Values, 1, FormattedItem)
     Options.DropList:SetValues(Options.DropList.Values)
-    sendWebhook(Options.GlobalWebhook.Value, {
+    sendWebhook(Options.DropWebhook.Value, {
         embeds = {{
             title = `You received {item.Name}!`,
             color = tonumber('0x' .. rarityColors[rarity]:ToHex()),
@@ -2439,7 +2463,7 @@ Profile.Skills.ChildAdded:Connect(function(skill)
     table.insert(ownedSkillNames, skill.Name)
 
     local inDatabase = Skills[skill.Name]
-    sendWebhook(Options.GlobalWebhook.Value, {
+    sendWebhook(Options.DropWebhook.Value, {
         embeds = {{
             title = `You received {skill.Name}!`,
             color = tonumber('0x' .. rarityColors.Burst:ToHex()),
@@ -2687,7 +2711,7 @@ FarmingKicks:AddToggle('SkillKick', { Text = 'Skill kick' })
 
 FarmingKicks:AddInput('KickWebhook', { Text = 'Kick webhook', Finished = true, Placeholder = 'https://discord.com/api/webhooks/' })
 :OnChanged(function()
-    sendTestMessage(Options.GlobalWebhook.Value)
+    sendTestMessage(Options.KickWebhook.Value)
 end)
 
 game:GetService('GuiService').ErrorMessageChanged:Connect(function(message)
@@ -2713,7 +2737,7 @@ game:GetService('GuiService').ErrorMessageChanged:Connect(function(message)
         }}
     }
 
-    sendWebhook(Options.GlobalWebhook.Value, Body, Toggles.PingInMessage.Value)
+    sendWebhook(Options.KickWebhook.Value, Body, Toggles.PingInMessage.Value)
 end)
 
 local SwingCheats = Misc:AddRightGroupbox('Swing cheats (can debounce)')
