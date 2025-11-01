@@ -28,7 +28,7 @@ local sendWebhook = (function()
     local http_request = (syn and syn.request) or (fluxus and fluxus.request) or (http and http.request) or request
     local HttpService = game:GetService("HttpService")
 
-    return function(url, body, ping, discordUserId)
+    return function(url, body, ping)
         if type(url) ~= "string" or url == "" then
             return
         end
@@ -39,26 +39,17 @@ local sendWebhook = (function()
             return
         end
 
-        -- 🔔 Ping handling
+        -- 🔔 Rôle à ping
+        local roleId = "1027287215056900226" -- remplace par l’ID exact de ton rôle @Poubelle
         local mentionText = nil
         local allowedMentions = { parse = {} }
-        local roleId = "1027287215056900226" -- remplace par l’ID du rôle Poubelle
 
         if ping then
-            local idString = tostring(discordUserId or ""):gsub("%s+", "")
-            if idString ~= "" and idString ~= "nil" then
-                mentionText = "<@" .. idString .. ">"
-                allowedMentions = {
-                    parse = { "users" },
-                    users = { idString }
-                }
-            else
-                mentionText = "<@&" .. roleId .. ">"
-                allowedMentions = {
-                    parse = { "roles" },
-                    roles = { roleId }
-                }
-            end
+            mentionText = "<@&" .. roleId .. ">"
+            allowedMentions = {
+                parse = { "roles" },
+                roles = { roleId }
+            }
         end
 
         -- Structure du message
