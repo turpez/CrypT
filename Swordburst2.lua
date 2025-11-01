@@ -43,7 +43,7 @@ local sendWebhook = (function()
             if idString ~= '' and idString ~= 'nil' then
                 body.content = '<@' .. idString .. '>'
             else
-                body.content = '@Turpez'
+                body.content = '@Poubelle'
             end
         else
             body.content = nil
