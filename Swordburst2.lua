@@ -73,10 +73,11 @@ end)()
 
 local sendTestMessage = function(url)
     sendWebhook(
-        url, {
+        url,
+        {
             embeds = {{
-                title = 'This is a test message',
-                description = `You'll be notified to this webhook`,
+                title = "This is a test message",
+                description = "You'll be notified to this webhook",
                 color = 0x00ff00
             }}
         },
@@ -84,6 +85,7 @@ local sendTestMessage = function(url)
         (Options.DiscordUserID and Options.DiscordUserID.Value)
     )
 end
+
 
 local Players = game:GetService('Players')
 local LocalPlayer = Players.LocalPlayer
