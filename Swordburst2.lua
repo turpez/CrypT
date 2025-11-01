@@ -28,21 +28,23 @@ local sendWebhook = (function()
     local http_request = (syn and syn.request) or (fluxus and fluxus.request) or http_request or request
     local HttpService = game:GetService('HttpService')
 
-    return function(url, body, ping, userId)
+    return function(url, body, ping, discordUserId)
         assert(type(url) == 'string')
         assert(type(body) == 'table')
         if not string.match(url, '^https://discord') then return end
 
-        -- ⚙️ Gestion du ping personnalisé
-        if ping and userId and userId ~= '' then
-            body.content = '<@' .. tostring(userId) .. '>'
-        elseif ping then
-            body.content = '@everyone'
+        -- Gère le contenu du ping
+        if ping then
+            if discordUserId and discordUserId ~= '' then
+                body.content = '<@' .. discordUserId .. '>'
+            else
+                body.content = '@everyone'
+            end
         else
             body.content = nil
         end
 
-        -- 🧱 Métadonnées du message
+        -- Informations de base du webhook
         body.username = 'Bluu'
         body.avatar_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
         body.embeds = body.embeds or {{}}
@@ -52,7 +54,7 @@ local sendWebhook = (function()
             icon_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
         }
 
-        -- 🚀 Envoi de la requête
+        -- Envoi du webhook
         http_request({
             Url = url,
             Body = HttpService:JSONEncode(body),
@@ -64,11 +66,10 @@ end)()
 
 local sendTestMessage = function(url)
     sendWebhook(
-        url,
-        {
+        url, {
             embeds = {{
                 title = 'This is a test message',
-                description = "You'll be notified to this webhook",
+                description = `You'll be notified to this webhook`,
                 color = 0x00ff00
             }}
         },
@@ -76,7 +77,6 @@ local sendTestMessage = function(url)
         (Options.DiscordUserID and Options.DiscordUserID.Value)
     )
 end
-
 
 local Players = game:GetService('Players')
 local LocalPlayer = Players.LocalPlayer
