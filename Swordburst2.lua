@@ -2503,6 +2503,13 @@ Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://di
 
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 
+Drops:AddInput('DiscordUserID', {
+    Text = 'ID Discord à ping',
+    Default = '',
+    Placeholder = 'ex: 123456789012345678',
+    Numeric = true
+})
+
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
 local dropList = {}
