@@ -25,72 +25,44 @@ if queue_on_teleport then
 end
 
 local sendWebhook = (function()
-    local http_request = (syn and syn.request) or (fluxus and fluxus.request) or (http and http.request) or request
-    local HttpService = game:GetService("HttpService")
+    local http_request = (syn and syn.request) or (fluxus and fluxus.request) or http_request or request
+    local HttpService = game:GetService('HttpService')
 
     return function(url, body, ping)
-        if type(url) ~= "string" or url == "" then
-            return
-        end
-        if type(body) ~= "table" then
-            return
-        end
-        if not string.find(url, "discord.com/api/webhooks/") then
-            return
-        end
+        assert(type(url) == 'string')
+        assert(type(body) == 'table')
+        if not string.match(url, '^https://discord') then return end
 
-        -- 🔔 Rôle à ping
-        local roleId = "1027287215056900226" -- remplace par l’ID exact de ton rôle @Poubelle
-        local mentionText = nil
-        local allowedMentions = { parse = {} }
-
-        if ping then
-            mentionText = "<@&" .. roleId .. ">"
-            allowedMentions = {
-                parse = { "roles" },
-                roles = { roleId }
-            }
-        end
-
-        -- Structure du message
-        body.content = mentionText
-        body.allowed_mentions = allowedMentions
-        body.username = "Bluu"
-        body.avatar_url = "https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png"
+        body.content = ping and '<@&1027287215056900226>' or nil
+        body.username = 'Bluu'
+        body.avatar_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
         body.embeds = body.embeds or {{}}
-        body.embeds[1].timestamp = os.date("!%Y-%m-%dT%H:%M:%S") .. "Z"
+        body.embeds[1].timestamp = DateTime:now():ToIsoDate()
         body.embeds[1].footer = {
-            text = "Bluu",
-            icon_url = "https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png"
+            text = 'Bluu',
+            icon_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
         }
 
-        -- 📨 Envoi
-        pcall(function()
-            http_request({
-                Url = url,
-                Method = "POST",
-                Headers = { ["Content-Type"] = "application/json" },
-                Body = HttpService:JSONEncode(body)
-            })
-        end)
+        http_request({
+            Url = url,
+            Body = HttpService:JSONEncode(body),
+            Method = 'POST',
+            Headers = { ['content-type'] = 'application/json' }
+        })
     end
 end)()
 
 local sendTestMessage = function(url)
     sendWebhook(
-        url,
-        {
+        url, {
             embeds = {{
-                title = "This is a test message",
-                description = "You'll be notified to this webhook",
+                title = 'This is a test message',
+                description = `You'll be notified to this webhook`,
                 color = 0x00ff00
             }}
-        },
-        (Toggles.PingInMessage and Toggles.PingInMessage.Value),
-        (Options.DiscordUserID and Options.DiscordUserID.Value)
+        }, (Toggles.PingInMessage and Toggles.PingInMessage.Value)
     )
 end
-
 
 local Players = game:GetService('Players')
 local LocalPlayer = Players.LocalPlayer
@@ -2516,13 +2488,6 @@ Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://di
 :OnChanged(sendTestMessage)
 
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
-
-Drops:AddInput('DiscordUserID', {
-    Text = 'ID Discord à ping',
-    Default = '',
-    Placeholder = 'ex: 123456789012345678',
-    Numeric = true
-})
 
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
