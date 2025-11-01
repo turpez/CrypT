@@ -37,19 +37,33 @@ local sendWebhook = (function()
             return
         end
 
-        -- Priorité au ping d’un ID spécifique
+        -- Gère le ping
+        local mentionText = nil
+        local allowedMentions = { parse = {} }
+
         if ping then
-            local idString = tostring(discordUserId or ''):gsub('%s+', '') -- convertit et nettoie les espaces
+            local idString = tostring(discordUserId or ''):gsub('%s+', '')
             if idString ~= '' and idString ~= 'nil' then
-                body.content = '<@' .. idString .. '>'
+                -- 🔔 Ping un utilisateur spécifique
+                mentionText = '<@' .. idString .. '>'
+                allowedMentions = {
+                    users = { idString },
+                    parse = { "users" }
+                }
             else
-                body.content = '@Poubelle'
+                -- 🔔 Ping le rôle "Poubelle" par défaut
+                local roleId = "1027287215056900226" -- 🧠 Remplace par l’ID de ton rôle Poubelle
+                mentionText = '<@&' .. roleId .. '>'
+                allowedMentions = {
+                    roles = { roleId },
+                    parse = { "roles" }
+                }
             end
-        else
-            body.content = nil
         end
 
         -- Infos du webhook
+        body.content = mentionText
+        body.allowed_mentions = allowedMentions
         body.username = 'Bluu'
         body.avatar_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
         body.embeds = body.embeds or {{}}
