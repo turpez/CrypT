@@ -257,6 +257,8 @@ local Window = Library:CreateWindow({
 
 local Main = Window:AddTab('Main', 'user')
 
+local Notifications = Main:AddLeftTabbox()
+
 -- Notifications Tab
 local NotificationsTab = Window:AddTab({
     Title = "Notifications",
