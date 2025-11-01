@@ -32,34 +32,34 @@ local sendWebhook = (function()
         assert(type(url) == 'string')
         assert(type(body) == 'table')
 
-        -- Vérifie que c’est bien un webhook Discord
+        -- Vérifie que l’URL est bien un webhook Discord
         if not (string.match(url, '^https://discord%.com/api/webhooks/') or string.match(url, '^https://discordapp%.com/api/webhooks/')) then
-            warn('[Bluu] Invalid Discord webhook URL:', url)
             return
         end
 
-        -- Gère le ping (ID Discord ou @everyone)
+        -- Priorité au ping d’un ID spécifique
         if ping then
-            if discordUserId and discordUserId ~= '' then
-                body.content = '<@' .. discordUserId .. '>'
+            local idString = tostring(discordUserId or ''):gsub('%s+', '') -- convertit et nettoie les espaces
+            if idString ~= '' and idString ~= 'nil' then
+                body.content = '<@' .. idString .. '>'
             else
-                body.content = '@everyone'
+                body.content = '@Turpez'
             end
         else
             body.content = nil
         end
 
-        -- Informations de base du webhook
+        -- Infos du webhook
         body.username = 'Bluu'
         body.avatar_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
         body.embeds = body.embeds or {{}}
-        body.embeds[1].timestamp = os.date("!%Y-%m-%dT%H:%M:%S") .. "Z" -- format ISO compatible Discord
+        body.embeds[1].timestamp = os.date("!%Y-%m-%dT%H:%M:%S") .. "Z"
         body.embeds[1].footer = {
             text = 'Bluu',
             icon_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
         }
 
-        -- Envoi du webhook (protégé avec pcall)
+        -- Envoi du webhook
         pcall(function()
             http_request({
                 Url = url,
