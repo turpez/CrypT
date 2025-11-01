@@ -64,6 +64,34 @@ local sendTestMessage = function(url)
     )
 end
 
+-- 🟢 Nouveau onglet “Notifications”
+local Notifications = Window:AddTab('Notifications', 'bell')
+
+Notifications:AddToggle('EnableNotifications', {
+    Text = 'Activer les notifications',
+    Default = true
+})
+
+Notifications:AddInput('WebhookURL', {
+    Text = 'Webhook Discord',
+    Placeholder = 'https://discord.com/api/webhooks/…'
+}):OnChanged(function(value)
+    WebhookURL = value
+end)
+
+Notifications:AddToggle('PingInMessage', {
+    Text = 'Ping in message',
+    Default = false
+})
+
+Notifications:AddInput('PingID', {
+    Text = 'Ping ID',
+    Placeholder = 'Ex: 331526795759190028'
+}):OnChanged(function(value)
+    PingID = value
+end)
+
+
 local Players = game:GetService('Players')
 local LocalPlayer = Players.LocalPlayer
 if not LocalPlayer then
