@@ -257,20 +257,13 @@ local Window = Library:CreateWindow({
 
 local Main = Window:AddTab('Main', 'user')
 
-local Notifications = Main:AddLeftTabbox()
+-- Ajoute une nouvelle TabBox à gauche sous Misc
+local Notifications = Main:AddLeftTabbox("Notifications")
 
--- Notifications Tab
-local NotificationsTab = Window:AddTab({
-    Title = "Notifications",
-    Icon = "bell" -- tu peux changer l’icône si ta lib en a d’autres
-})
+-- Onglet Discord à l’intérieur de Notifications
+local DiscordTab = Notifications:AddTab("Discord")
 
--- Section Discord
-local DiscordSection = NotificationsTab:AddSection({
-    Title = "Discord"
-})
-
-DiscordSection:AddInput("Webhook URL", {
+DiscordTab:AddInput("Webhook", {
     Default = "",
     Placeholder = "https://discord.com/api/webhooks/...",
     Numeric = false,
@@ -281,8 +274,8 @@ DiscordSection:AddInput("Webhook URL", {
     end
 })
 
-DiscordSection:AddToggle("Activer les notifications Discord", {
-    Text = "Envoyer les notifications Discord",
+DiscordTab:AddToggle("DiscordNotif", {
+    Text = "Activer les notifications Discord",
     Default = false,
     Callback = function(state)
         getgenv().DiscordNotify = state
@@ -294,23 +287,20 @@ DiscordSection:AddToggle("Activer les notifications Discord", {
     end
 })
 
-DiscordSection:AddButton({
-    Text = "Tester l’envoi",
-    Func = function()
-        if getgenv().WebhookURL and getgenv().WebhookURL ~= "" then
-            request({
-                Url = getgenv().WebhookURL,
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
-                Body = game:GetService("HttpService"):JSONEncode({
-                    content = "🔔 Test de notification Discord réussi !"
-                })
+DiscordTab:AddButton("Tester l’envoi", function()
+    if getgenv().WebhookURL and getgenv().WebhookURL ~= "" then
+        request({
+            Url = getgenv().WebhookURL,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = game:GetService("HttpService"):JSONEncode({
+                content = "🔔 Test de notification Discord réussi !"
             })
-        else
-            warn("⚠️ Aucun webhook configuré.")
-        end
+        })
+    else
+        warn("⚠️ Aucun webhook configuré.")
     end
-})
+end)
 
 local Farming = Main:AddLeftTabbox()
 
