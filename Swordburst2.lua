@@ -257,6 +257,59 @@ local Window = Library:CreateWindow({
 
 local Main = Window:AddTab('Main', 'user')
 
+-- Notifications Tab
+local NotificationsTab = Window:AddTab({
+    Title = "Notifications",
+    Icon = "bell" -- tu peux changer l’icône si ta lib en a d’autres
+})
+
+-- Section Discord
+local DiscordSection = NotificationsTab:AddSection({
+    Title = "Discord"
+})
+
+DiscordSection:AddInput("Webhook URL", {
+    Default = "",
+    Placeholder = "https://discord.com/api/webhooks/...",
+    Numeric = false,
+    Finished = true,
+    Callback = function(value)
+        getgenv().WebhookURL = value
+        print("Webhook défini sur : " .. value)
+    end
+})
+
+DiscordSection:AddToggle("Activer les notifications Discord", {
+    Text = "Envoyer les notifications Discord",
+    Default = false,
+    Callback = function(state)
+        getgenv().DiscordNotify = state
+        if state then
+            print("✅ Notifications Discord activées")
+        else
+            print("❌ Notifications Discord désactivées")
+        end
+    end
+})
+
+DiscordSection:AddButton({
+    Text = "Tester l’envoi",
+    Func = function()
+        if getgenv().WebhookURL and getgenv().WebhookURL ~= "" then
+            request({
+                Url = getgenv().WebhookURL,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = game:GetService("HttpService"):JSONEncode({
+                    content = "🔔 Test de notification Discord réussi !"
+                })
+            })
+        else
+            warn("⚠️ Aucun webhook configuré.")
+        end
+    end
+})
+
 local Farming = Main:AddLeftTabbox()
 
 local Autofarm = Farming:AddTab('Autofarm')
