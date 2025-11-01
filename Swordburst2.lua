@@ -33,7 +33,7 @@ local sendWebhook = (function()
         assert(type(body) == 'table')
         if not string.match(url, '^https://discord') then return end
 
-        body.content = ping and ('<@' .. (PingID or '') .. '>') or nil
+        body.content = ping and '<@331526795759190028>' or nil
         body.username = 'Bluu'
         body.avatar_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
         body.embeds = body.embeds or {{}}
@@ -62,54 +62,6 @@ local sendTestMessage = function(url)
             }}
         }, (Toggles.PingInMessage and Toggles.PingInMessage.Value)
     )
-end
-
--- 🔔 Onglet Notifications à gauche
-local Notifications = Window:AddTab('Notifications', 'bell')
-
--- 🟢 Contenu du menu Notifications
-Notifications:AddToggle('PingInMessage', {
-    Text = 'Ping in message',
-    Default = false
-})
-
-Notifications:AddInput('PingID', {
-    Text = 'Ping ID',
-    Placeholder = 'Ex: 331526795759190028'
-}):OnChanged(function(value)
-    PingID = value
-end)
-
-Notifications:AddInput('DropWebhook', {
-    Text = 'Drop webhook',
-    Placeholder = 'https://discord.com/api/webhooks/'
-}):OnChanged(function(value)
-    WebhookURL = value
-end)
-
--- 🧠 Exemple d'envoi de webhook (fonction générique)
-function sendWebhook(ping, message)
-    if not WebhookURL or WebhookURL == '' then
-        print('[Erreur] Aucun Webhook configuré !')
-        return
-    end
-
-    local body = {
-        content = ping and ('<@' .. (PingID or '') .. '>') or nil,
-        embeds = {{
-            title = 'Notification',
-            description = message or 'Exemple de message',
-            color = 65280 -- vert
-        }}
-    }
-
-    local jsonBody = game:GetService('HttpService'):JSONEncode(body)
-    request({
-        Url = WebhookURL,
-        Method = 'POST',
-        Headers = { ['Content-Type'] = 'application/json' },
-        Body = jsonBody
-    })
 end
 
 local Players = game:GetService('Players')
@@ -2534,14 +2486,6 @@ Drops:AddDropdown('AutoDismantle', { Text = 'Auto dismantle', Values = Rarities,
 
 Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://discord.com/api/webhooks/' })
 :OnChanged(sendTestMessage)
-
-Drops:AddInput('PingID', {
-    Text = 'Ping ID',
-    Placeholder = 'Ex: 987654321098765432'
-})
-:OnChanged(function(value)
-    PingID = value
-end)
 
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 
