@@ -25,63 +25,76 @@ if queue_on_teleport then
 end
 
 local sendWebhook = (function()
-    local http_request = (syn and syn.request) or (fluxus and fluxus.request) or http_request or request
-    local HttpService = game:GetService('HttpService')
+    -- Compatibilité universelle avec les exécutors Roblox
+    local http_request = (syn and syn.request) or (fluxus and fluxus.request) or (http and http.request) or request
+    local HttpService = game:GetService("HttpService")
 
     return function(url, body, ping, discordUserId)
-        assert(type(url) == 'string')
-        assert(type(body) == 'table')
-
-        -- Vérifie que l’URL est bien un webhook Discord
-        if not (string.match(url, '^https://discord%.com/api/webhooks/') or string.match(url, '^https://discordapp%.com/api/webhooks/')) then
+        -- Sécurité basique
+        if type(url) ~= "string" or url == "" then
+            warn("[Bluu] Aucun webhook configuré.")
+            return
+        end
+        if type(body) ~= "table" then
+            warn("[Bluu] Corps de requête invalide.")
             return
         end
 
-        -- Gère le ping
-        local mentionText = nil
-        local allowedMentions = { parse = {} }
+        -- Vérifie si c’est bien un webhook Discord
+        if not string.find(url, "discord.com/api/webhooks/") then
+            warn("[Bluu] URL non valide : " .. tostring(url))
+            return
+        end
 
+        -- Gère les mentions (ping)
+        local mentionText, allowedMentions
         if ping then
-            local idString = tostring(discordUserId or ''):gsub('%s+', '')
-            if idString ~= '' and idString ~= 'nil' then
-                -- 🔔 Ping un utilisateur spécifique
-                mentionText = '<@' .. idString .. '>'
+            local idString = tostring(discordUserId or ""):gsub("%s+", "")
+            if idString ~= "" and idString ~= "nil" then
+                mentionText = "<@" .. idString .. ">"
                 allowedMentions = {
                     users = { idString },
                     parse = { "users" }
                 }
             else
-                -- 🔔 Ping le rôle "Poubelle" par défaut
-                local roleId = "1027287215056900226" -- 🧠 Remplace par l’ID de ton rôle Poubelle
-                mentionText = '<@&' .. roleId .. '>'
+                -- 🔔 rôle Poubelle
+                local roleId = "1027287215056900226" -- remplace par ton vrai ID de rôle
+                mentionText = "<@&" .. roleId .. ">"
                 allowedMentions = {
                     roles = { roleId },
                     parse = { "roles" }
                 }
             end
+        else
+            mentionText = nil
+            allowedMentions = { parse = {} }
         end
 
-        -- Infos du webhook
+        -- Corps du message
         body.content = mentionText
         body.allowed_mentions = allowedMentions
-        body.username = 'Bluu'
-        body.avatar_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
+        body.username = "Bluu"
+        body.avatar_url = "https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png"
         body.embeds = body.embeds or {{}}
         body.embeds[1].timestamp = os.date("!%Y-%m-%dT%H:%M:%S") .. "Z"
         body.embeds[1].footer = {
-            text = 'Bluu',
-            icon_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
+            text = "Bluu",
+            icon_url = "https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png"
         }
 
-        -- Envoi du webhook
-        pcall(function()
-            http_request({
+        -- Envoi HTTP protégé
+        local success, result = pcall(function()
+            return http_request({
                 Url = url,
-                Method = 'POST',
-                Headers = { ['Content-Type'] = 'application/json' },
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
                 Body = HttpService:JSONEncode(body)
             })
         end)
+
+        if not success then
+            warn("[Bluu] Erreur d’envoi du webhook :", tostring(result))
+        end
     end
 end)()
 
