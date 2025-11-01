@@ -31,9 +31,14 @@ local sendWebhook = (function()
     return function(url, body, ping, discordUserId)
         assert(type(url) == 'string')
         assert(type(body) == 'table')
-        if not string.match(url, '^https://discord') then return end
 
-        -- Gère le contenu du ping
+        -- Vérifie que c’est bien un webhook Discord
+        if not (string.match(url, '^https://discord%.com/api/webhooks/') or string.match(url, '^https://discordapp%.com/api/webhooks/')) then
+            warn('[Bluu] Invalid Discord webhook URL:', url)
+            return
+        end
+
+        -- Gère le ping (ID Discord ou @everyone)
         if ping then
             if discordUserId and discordUserId ~= '' then
                 body.content = '<@' .. discordUserId .. '>'
@@ -48,19 +53,21 @@ local sendWebhook = (function()
         body.username = 'Bluu'
         body.avatar_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
         body.embeds = body.embeds or {{}}
-        body.embeds[1].timestamp = DateTime:now():ToIsoDate()
+        body.embeds[1].timestamp = os.date("!%Y-%m-%dT%H:%M:%S") .. "Z" -- format ISO compatible Discord
         body.embeds[1].footer = {
             text = 'Bluu',
             icon_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
         }
 
-        -- Envoi du webhook
-        http_request({
-            Url = url,
-            Body = HttpService:JSONEncode(body),
-            Method = 'POST',
-            Headers = { ['content-type'] = 'application/json' }
-        })
+        -- Envoi du webhook (protégé avec pcall)
+        pcall(function()
+            http_request({
+                Url = url,
+                Method = 'POST',
+                Headers = { ['Content-Type'] = 'application/json' },
+                Body = HttpService:JSONEncode(body)
+            })
+        end)
     end
 end)()
 
