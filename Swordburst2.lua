@@ -33,7 +33,7 @@ local sendWebhook = (function()
         assert(type(body) == 'table')
         if not string.match(url, '^https://discord') then return end
 
-        body.content = ping and '<@&1027287215056900226>' or nil
+        body.content = ping and '<@331526795759190028>' or nil
         body.username = 'Bluu'
         body.avatar_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
         body.embeds = body.embeds or {{}}
