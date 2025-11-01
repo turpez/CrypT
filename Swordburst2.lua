@@ -25,52 +25,43 @@ if queue_on_teleport then
 end
 
 local sendWebhook = (function()
-    -- Compatibilité universelle avec les exécutors Roblox
     local http_request = (syn and syn.request) or (fluxus and fluxus.request) or (http and http.request) or request
     local HttpService = game:GetService("HttpService")
 
     return function(url, body, ping, discordUserId)
-        -- Sécurité basique
         if type(url) ~= "string" or url == "" then
-            warn("[Bluu] Aucun webhook configuré.")
             return
         end
         if type(body) ~= "table" then
-            warn("[Bluu] Corps de requête invalide.")
             return
         end
-
-        -- Vérifie si c’est bien un webhook Discord
         if not string.find(url, "discord.com/api/webhooks/") then
-            warn("[Bluu] URL non valide : " .. tostring(url))
             return
         end
 
-        -- Gère les mentions (ping)
-        local mentionText, allowedMentions
+        -- 🔔 Ping handling
+        local mentionText = nil
+        local allowedMentions = { parse = {} }
+        local roleId = "1027287215056900226" -- remplace par l’ID du rôle Poubelle
+
         if ping then
             local idString = tostring(discordUserId or ""):gsub("%s+", "")
             if idString ~= "" and idString ~= "nil" then
                 mentionText = "<@" .. idString .. ">"
                 allowedMentions = {
-                    users = { idString },
-                    parse = { "users" }
+                    parse = { "users" },
+                    users = { idString }
                 }
             else
-                -- 🔔 rôle Poubelle
-                local roleId = "1027287215056900226" -- remplace par ton vrai ID de rôle
                 mentionText = "<@&" .. roleId .. ">"
                 allowedMentions = {
-                    roles = { roleId },
-                    parse = { "roles" }
+                    parse = { "roles" },
+                    roles = { roleId }
                 }
             end
-        else
-            mentionText = nil
-            allowedMentions = { parse = {} }
         end
 
-        -- Corps du message
+        -- Structure du message
         body.content = mentionText
         body.allowed_mentions = allowedMentions
         body.username = "Bluu"
@@ -82,19 +73,15 @@ local sendWebhook = (function()
             icon_url = "https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png"
         }
 
-        -- Envoi HTTP protégé
-        local success, result = pcall(function()
-            return http_request({
+        -- 📨 Envoi
+        pcall(function()
+            http_request({
                 Url = url,
                 Method = "POST",
                 Headers = { ["Content-Type"] = "application/json" },
                 Body = HttpService:JSONEncode(body)
             })
         end)
-
-        if not success then
-            warn("[Bluu] Erreur d’envoi du webhook :", tostring(result))
-        end
     end
 end)()
 
