@@ -3114,6 +3114,6 @@ SaveManager:LoadAutoloadConfig()
 
 local Credits = Settings:AddRightGroupbox('Credits')
 
-Credits:AddLabel('de_Neuublue - Script')
-Credits:AddLabel('Inori - UI library')
-Credits:AddLabel('wally - UI addons')
+Credits:AddLabel('Turpez / Divh - Script')
+Credits:AddLabel('Turpez - UI library')
+Credits:AddLabel('Turpez / Divh - UI addons')
