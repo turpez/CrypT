@@ -34,13 +34,13 @@ local sendWebhook = (function()
         if not string.match(url, '^https://discord') then return end
 
         body.content = ping and ('<@' .. (PingID or '') .. '>') or nil
-        body.username = ''
-        body.avatar_url = 'https://raw.githubusercontent.com/turpez/CrypT/main/CrypT.png'
+        body.username = 'CrypT'
+        body.avatar_url = 'https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/CrypT.png'
         body.embeds = body.embeds or {{}}
         body.embeds[1].timestamp = DateTime:now():ToIsoDate()
         body.embeds[1].footer = {
             text = 'CrypT',
-            icon_url = 'https://raw.githubusercontent.com/turpez/CrypT/main/CrypT.png'
+            icon_url = 'https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/CrypT.png'
         }
 
         http_request({
