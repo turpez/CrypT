@@ -2484,19 +2484,6 @@ local Rarities = { 'Common', 'Uncommon', 'Rare', 'Legendary', 'Tribute' }
 
 Drops:AddDropdown('AutoDismantle', { Text = 'Auto dismantle', Values = Rarities, Multi = true, AllowNull = true })
 
-Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://discord.com/api/webhooks/' })
-:OnChanged(sendTestMessage)
-
-Drops:AddInput('PingID', {
-    Text = 'Ping ID',
-    Placeholder = 'Ex: 987654321098765432'
-})
-:OnChanged(function(value)
-    PingID = value
-end)
-
-Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
-
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
 local dropList = {}
