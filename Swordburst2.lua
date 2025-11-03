@@ -3089,6 +3089,74 @@ local Menu = Settings:AddLeftGroupbox('Menu', 'menu')
 
 local NotifTab = Window:AddTab({ Name = "Notifications", Icon = "bell", Description = "Alertes et Webhooks Discord" })
 
+-- 🔔 Contenu de l'onglet Notifications
+local WebhookLeft = NotifTab:AddLeftGroupbox("Webhook Discord")
+
+WebhookLeft:AddToggle("webhook_enabled", {
+    Text = "Activer l'envoi via Webhook",
+    Default = false
+})
+
+WebhookLeft:AddInput("webhook_url", {
+    Text = "URL du Webhook",
+    Placeholder = "https://discord.com/api/webhooks/..."
+})
+
+WebhookLeft:AddInput("webhook_ping", {
+    Text = "ID à ping (optionnel)",
+    Placeholder = "Ex: 987654321098765432"
+})
+
+WebhookLeft:AddButton("📡 Envoyer un message test", function()
+    local HttpService = game:GetService("HttpService")
+    local url = Options.webhook_url.Value
+    local ping = Options.webhook_ping.Value
+
+    if not url or url == "" then
+        Library:Notify("⚠️ Aucun webhook configuré.", 4)
+        return
+    end
+
+    local body = {
+        content = ping ~= "" and ("<@" .. ping .. ">") or nil,
+        embeds = {{
+            title = "✅ Test CrypT",
+            description = "Les notifications Discord fonctionnent parfaitement !",
+            color = 0x00FFFF,
+            footer = { text = "CrypT Notifications" }
+        }}
+    }
+
+    request({
+        Url = url,
+        Method = "POST",
+        Headers = { ["Content-Type"] = "application/json" },
+        Body = HttpService:JSONEncode(body)
+    })
+
+    Library:Notify("✅ Message de test envoyé avec succès !", 4)
+end)
+
+-- Colonne de droite : alertes automatiques
+local WebhookRight = NotifTab:AddRightGroupbox("Alertes automatiques")
+
+WebhookRight:AddToggle("alert_drop", {
+    Text = "Notifier les nouveaux drops",
+    Default = true
+})
+
+WebhookRight:AddToggle("alert_boss", {
+    Text = "Notifier l'apparition d'un boss",
+    Default = false
+})
+
+WebhookRight:AddToggle("alert_death", {
+    Text = "Notifier la mort du joueur",
+    Default = false
+})
+
+WebhookRight:AddLabel("Toutes les alertes sont envoyées sur ton webhook configuré.")
+
 Menu:AddLabel('Menu keybind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true })
 
 Library.ToggleKeybind = Options.MenuKeybind
