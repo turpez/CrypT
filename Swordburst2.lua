@@ -2740,6 +2740,7 @@ ModDetector:AddSlider('PanicDelay', { Text = 'Panic delay', Default = 15, Min = 
 
 local modCheck = function(player, leaving)
     if player == LocalPlayer or not table.find(mods, player.UserId) then return end
+
     Library:Notify(`Mod {player.Name} {leaving and 'left' or 'joined'} your game at {os.date('%I:%M:%S %p')}`, 60)
 
     if leaving then return end
@@ -2748,7 +2749,43 @@ local modCheck = function(player, leaving)
 
     task.delay(Options.KickDelay.Value, function()
         if Toggles.Autokick.Value then
-            LocalPlayer:Kick(`\n\n{player.Name} joined at {os.date('%I:%M:%S %p')}\n`)
+            -- 🧠 Raison exacte du kick
+            local kickReason = string.format("\n\n%s joined at %s\n", player.Name, os.date("%I:%M:%S %p"))
+
+            -- 🔔 Envoi du webhook si activé
+            if Toggles.webhook_enabled and Toggles.webhook_enabled.Value
+            and Toggles.AlertAutoKick and Toggles.AlertAutoKick.Value then
+                local HttpService = game:GetService("HttpService")
+                local webhookURL = (Options.WebhookURL and Options.WebhookURL.Value) or ""
+                local ping = (Options.WebhookPing and Options.WebhookPing.Value) or ""
+
+                if webhookURL ~= "" then
+                    local body = {
+                        content = ping ~= "" and ("<@" .. ping .. ">") or nil,
+                        embeds = {{
+                            title = "🚨 Autokick exécuté",
+                            description = "Le joueur **" .. LocalPlayer.Name .. "** a été kick automatiquement suite à la détection d’un modérateur.",
+                            color = 0xFF0000,
+                            fields = {
+                                { name = "Mod détecté", value = player.Name, inline = true },
+                                { name = "Raison du kick", value = kickReason, inline = false },
+                                { name = "Heure", value = os.date("%H:%M:%S"), inline = true }
+                            },
+                            footer = { text = "CrypT Notifications" }
+                        }}
+                    }
+
+                    request({
+                        Url = webhookURL,
+                        Method = "POST",
+                        Headers = { ["Content-Type"] = "application/json" },
+                        Body = HttpService:JSONEncode(body)
+                    })
+                end
+            end
+
+            -- 🚪 Exécution du vrai kick
+            LocalPlayer:Kick(kickReason)
         end
     end)
 
@@ -3157,6 +3194,11 @@ WebhookRight:AddToggle("AlertBoss", {
 WebhookRight:AddToggle("AlertDeath", {
     Text = "Notifier la mort du joueur",
     Default = false
+})
+
+WebhookRight:AddToggle("AlertAutoKick", {
+    Text = "Notifier quand l'AutoKick se déclenche",
+    Default = true
 })
 
 WebhookRight:AddLabel("Toutes les alertes sont envoyées sur ton webhook configuré.")
