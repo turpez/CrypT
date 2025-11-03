@@ -3087,30 +3087,34 @@ local Settings = Window:AddTab('Settings', 'settings')
 
 local Menu = Settings:AddLeftGroupbox('Menu', 'menu')
 
-local NotifTab = Window:AddTab({ Name = "Notifications", Icon = "bell", Description = "Alertes et Webhooks Discord" })
+local NotifTab = Window:AddTab({ 
+    Name = "Notifications", 
+    Icon = "bell", 
+    Description = "Alertes et Webhooks Discord" 
+})
 
 -- 🔔 Contenu de l'onglet Notifications
 local WebhookLeft = NotifTab:AddLeftGroupbox("Webhook Discord")
 
-WebhookLeft:AddToggle("webhook_enabled", {
+WebhookLeft:AddToggle("WebhookEnabled", {
     Text = "Activer l'envoi via Webhook",
     Default = false
 })
 
-WebhookLeft:AddInput("webhook_url", {
+WebhookLeft:AddInput("WebhookURL", {
     Text = "URL du Webhook",
     Placeholder = "https://discord.com/api/webhooks/..."
 })
 
-WebhookLeft:AddInput("webhook_ping", {
+WebhookLeft:AddInput("WebhookPing", {
     Text = "ID à ping (optionnel)",
     Placeholder = "Ex: 987654321098765432"
 })
 
 WebhookLeft:AddButton("📡 Envoyer un message test", function()
     local HttpService = game:GetService("HttpService")
-    local url = Options.webhook_url.Value
-    local ping = Options.webhook_ping.Value
+    local url = Options.WebhookURL.Value
+    local ping = Options.WebhookPing.Value
 
     if not url or url == "" then
         Library:Notify("⚠️ Aucun webhook configuré.", 4)
@@ -3140,17 +3144,17 @@ end)
 -- Colonne de droite : alertes automatiques
 local WebhookRight = NotifTab:AddRightGroupbox("Alertes automatiques")
 
-WebhookRight:AddToggle("alert_drop", {
+WebhookRight:AddToggle("AlertDrop", {
     Text = "Notifier les nouveaux drops",
     Default = true
 })
 
-WebhookRight:AddToggle("alert_boss", {
+WebhookRight:AddToggle("AlertBoss", {
     Text = "Notifier l'apparition d'un boss",
     Default = false
 })
 
-WebhookRight:AddToggle("alert_death", {
+WebhookRight:AddToggle("AlertDeath", {
     Text = "Notifier la mort du joueur",
     Default = false
 })
