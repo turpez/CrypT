@@ -244,21 +244,27 @@ local lastUpdated = (function()
 end)()
 
 local Window = Library:CreateWindow({
-    Title = 'CrypT',
-    Footer = 'Swordburst 2 | CrypT Hub | Updated ' .. lastUpdated,
+    Title = 'CrypT – Swordburst 2',
+    Footer = 'CrypT | github.com/turpez/CrypT | Updated ' .. lastUpdated,
     Center = true,
     AutoShow = true,
     ToggleKeybind = Enum.KeyCode.End,
     NotifySide = 'Left',
     ShowCustomCursor = false,
-    CornerRadius = 0,
+    CornerRadius = 8, -- arrondis plus doux, plus premium
     Icon = 98255933738244,
     Resizable = true,
     MobileButtonsSide = 'Right',
-    -- TabPadding = 8,
-    -- MenuFadeTime = 0.1,
-    Size = UDim2.fromOffset(700, 500)
+    Size = UDim2.fromOffset(720, 520)
 })
+
+-- Animation d’ouverture CrypT
+task.spawn(function()
+    for i = 0, 1, 0.05 do
+        Library.MainFrame.BackgroundTransparency = 1 - i
+        task.wait(0.02)
+    end
+end)
 
 local Main = Window:AddTab('Main', 'user')
 
@@ -3108,6 +3114,7 @@ ThemeManager:ApplyToTab(Settings)
 local SaveManager = loadstring(game:HttpGet(UIRepo .. 'addons/SaveManager.lua'))()
 SaveManager:SetLibrary(Library)
 SaveManager:SetFolder('CrypT/Swordburst 2')
+ThemeManager:LoadTheme('CrypT')
 SaveManager:IgnoreThemeSettings()
 SaveManager:BuildConfigSection(Settings)
 SaveManager:LoadAutoloadConfig()
