@@ -1,5 +1,5 @@
-if getgenv().Bluu then return end
-getgenv().Bluu = true
+if getgenv().CrypT then return end
+getgenv().CrypT = true
 
 if not game:IsLoaded() then
     game.Loaded:Wait()
@@ -18,8 +18,8 @@ end
 local queue_on_teleport = (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport) or queue_on_teleport
 if queue_on_teleport then
     queue_on_teleport([[
-        if isfile('Bluu/Swordburst 2/autoexec') and readfile('Bluu/Swordburst 2/autoexec') == 'true' then
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/Neuublue/Bluu/main/Swordburst2.lua'))()
+        if isfile('crypt/Swordburst 2/autoexec') and readfile('crypt/Swordburst 2/autoexec') == 'true' then
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/crypt/sb2/refs/heads/main/Swordburst2.lua'))()
         end
     ]])
 end
@@ -34,13 +34,13 @@ local sendWebhook = (function()
         if not string.match(url, '^https://discord') then return end
 
         body.content = ping and ('<@' .. (PingID or '') .. '>') or nil
-        body.username = 'Bluu'
-        body.avatar_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
+        body.username = ''
+        body.avatar_url = 'https://raw.githubusercontent.com/turpez/CrypT/main/CrypT.png'
         body.embeds = body.embeds or {{}}
         body.embeds[1].timestamp = DateTime:now():ToIsoDate()
         body.embeds[1].footer = {
-            text = 'Bluu',
-            icon_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
+            text = 'CrypT',
+            icon_url = 'https://raw.githubusercontent.com/turpez/CrypT/main/CrypT.png'
         }
 
         http_request({
@@ -244,8 +244,8 @@ local lastUpdated = (function()
 end)()
 
 local Window = Library:CreateWindow({
-    Title = 'Bluu',
-	Footer = 'Swordburst 2 | discord.gg/nKQp6VqzJF | Updated ' .. lastUpdated,
+    Title = 'CrypT',
+    Footer = 'Swordburst 2 | CrypT Hub | Updated ' .. lastUpdated,
     Center = true,
     AutoShow = true,
     ToggleKeybind = Enum.KeyCode.End,
