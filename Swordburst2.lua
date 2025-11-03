@@ -244,27 +244,21 @@ local lastUpdated = (function()
 end)()
 
 local Window = Library:CreateWindow({
-    Title = 'CrypT – Swordburst 2',
-    Footer = 'CrypT | github.com/turpez/CrypT | Updated ' .. lastUpdated,
+    Title = 'CrypT',
+    Footer = 'Swordburst 2 | CrypT Hub | Updated ' .. lastUpdated,
     Center = true,
     AutoShow = true,
     ToggleKeybind = Enum.KeyCode.End,
     NotifySide = 'Left',
     ShowCustomCursor = false,
-    CornerRadius = 8, -- arrondis plus doux, plus premium
+    CornerRadius = 0,
     Icon = 98255933738244,
     Resizable = true,
     MobileButtonsSide = 'Right',
-    Size = UDim2.fromOffset(720, 520)
+    -- TabPadding = 8,
+    -- MenuFadeTime = 0.1,
+    Size = UDim2.fromOffset(700, 500)
 })
-
--- Animation d’ouverture CrypT
-task.spawn(function()
-    for i = 0, 1, 0.05 do
-        Library.MainFrame.BackgroundTransparency = 1 - i
-        task.wait(0.02)
-    end
-end)
 
 local Main = Window:AddTab('Main', 'user')
 
@@ -3093,6 +3087,78 @@ local Settings = Window:AddTab('Settings', 'settings')
 
 local Menu = Settings:AddLeftGroupbox('Menu', 'menu')
 
+-- 🔔 Onglet Notifications (Discord)
+local NotifTab = Window:AddTab('🔔  Notifications')
+
+-- Colonne gauche
+local WebhookLeft = NotifTab:AddLeftGroupbox('Discord Webhook')
+
+WebhookLeft:AddToggle('webhook', { 
+    Text = 'Activer l\'envoi via Webhook', 
+    Default = false 
+})
+
+WebhookLeft:AddInput('webhookURL', { 
+    Text = 'URL du Webhook', 
+    Placeholder = 'https://discord.com/api/webhooks/...' 
+})
+
+WebhookLeft:AddInput('webhookPingID', { 
+    Text = 'ID à ping', 
+    Placeholder = 'Ex: 987654321098765432' 
+})
+
+WebhookLeft:AddButton('📡 Envoyer un message test', function()
+    local Settings = Options
+    local webhook = Settings.webhookURL.Value
+    local ping = Settings.webhookPingID.Value
+    if not webhook or webhook == '' then
+        print('⚠️ Aucun webhook configuré.')
+        return
+    end
+    
+    local body = {
+        content = ping ~= '' and ('<@' .. ping .. '>') or nil,
+        embeds = {{
+            title = '✅ Test réussi',
+            description = 'CrypT envoie correctement des messages sur Discord !',
+            color = 0x00FFFF,
+            footer = { text = 'CrypT Notifications' }
+        }}
+    }
+    
+    local HttpService = game:GetService('HttpService')
+    local bodyJson = HttpService:JSONEncode(body)
+    request({
+        Url = webhook,
+        Method = 'POST',
+        Headers = { ['Content-Type'] = 'application/json' },
+        Body = bodyJson
+    })
+    
+    print('✅ Message de test envoyé.')
+end)
+
+-- Colonne droite
+local WebhookRight = NotifTab:AddRightGroupbox('Paramètres d\'alerte')
+
+WebhookRight:AddToggle('alert_on_drop', { 
+    Text = 'Notifier les nouveaux drops', 
+    Default = true 
+})
+
+WebhookRight:AddToggle('alert_on_boss', { 
+    Text = 'Notifier l\'apparition d\'un boss', 
+    Default = false 
+})
+
+WebhookRight:AddToggle('alert_on_death', { 
+    Text = 'Notifier la mort du joueur', 
+    Default = false 
+})
+
+WebhookRight:AddLabel('Tous les messages s\'enverront sur ton webhook configuré.')
+
 Menu:AddLabel('Menu keybind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true })
 
 Library.ToggleKeybind = Options.MenuKeybind
@@ -3114,7 +3180,6 @@ ThemeManager:ApplyToTab(Settings)
 local SaveManager = loadstring(game:HttpGet(UIRepo .. 'addons/SaveManager.lua'))()
 SaveManager:SetLibrary(Library)
 SaveManager:SetFolder('CrypT/Swordburst 2')
-ThemeManager:LoadTheme('CrypT')
 SaveManager:IgnoreThemeSettings()
 SaveManager:BuildConfigSection(Settings)
 SaveManager:LoadAutoloadConfig()
