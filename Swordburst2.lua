@@ -236,7 +236,7 @@ local Toggles = Library.Toggles
 
 local lastUpdated = (function()
     local success, result = pcall(function()
-        local latestCommit = 'https://api.github.com/repos/Neuublue/Bluu/commits?path=Swordburst2.lua&page=1&per_page=1'
+        local latestCommit = 'https://api.github.com/repos/turpez/CrypT/commits?path=Swordburst2.lua&page=1&per_page=1'
         local isoDate = game:GetService('HttpService'):JSONDecode(game:HttpGet(latestCommit))[1].commit.committer.date
         return DateTime.fromIsoDate(isoDate):FormatLocalTime('l', 'en-us')
     end)
@@ -3092,22 +3092,22 @@ Menu:AddLabel('Menu keybind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoU
 Library.ToggleKeybind = Options.MenuKeybind
 
 local autoexecute = true
-if isfile('Bluu/Swordburst 2/autoexec') and readfile('Bluu/Swordburst 2/autoexec') == 'false' then
+if isfile('CrypT/Swordburst 2/autoexec') and readfile('CrypT/Swordburst 2/autoexec') == 'false' then
     autoexecute = false
 end
 
 Menu:AddToggle('Autoexecute', { Text = 'Autoexecute', Default = autoexecute }):OnChanged(function(value)
-    writefile('Bluu/Swordburst 2/autoexec', tostring(value))
+    writefile('CrypT/Swordburst 2/autoexec', tostring(value))
 end)
 
 local ThemeManager = loadstring(game:HttpGet(UIRepo .. 'addons/ThemeManager.lua'))()
 ThemeManager:SetLibrary(Library)
-ThemeManager:SetFolder('Bluu/Swordburst 2')
+ThemeManager:SetFolder('CrypT/Swordburst 2')
 ThemeManager:ApplyToTab(Settings)
 
 local SaveManager = loadstring(game:HttpGet(UIRepo .. 'addons/SaveManager.lua'))()
 SaveManager:SetLibrary(Library)
-SaveManager:SetFolder('Bluu/Swordburst 2')
+SaveManager:SetFolder('CrypT/Swordburst 2')
 SaveManager:IgnoreThemeSettings()
 SaveManager:BuildConfigSection(Settings)
 SaveManager:LoadAutoloadConfig()
