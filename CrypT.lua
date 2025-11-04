@@ -5,80 +5,6 @@ if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
-task.spawn(function()
-    local Players = game:GetService("Players")
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local MarketplaceService = game:GetService("MarketplaceService")
-    local LocalPlayer = Players.LocalPlayer
-
-    -- 🔍 Attente du profil du joueur
-    local Profiles = ReplicatedStorage:WaitForChild("Profiles", 10)
-    if not Profiles then
-        sendWebhook(Options.WebhookURL.Value, {content = "❌ Impossible de trouver 'Profiles'."})
-        return
-    end
-
-    local Profile
-    repeat
-        task.wait(0.5)
-        Profile = Profiles:FindFirstChild(LocalPlayer.Name)
-    until Profile
-
-    local Inventory = Profile:WaitForChild("Inventory")
-
-    -- ✅ Confirmation que le hook est actif
-    sendWebhook(Options.WebhookURL.Value, {
-        content = "✅ Hook activé sur l'inventaire de " .. LocalPlayer.Name
-    })
-
-    -- 🎁 Détection des nouveaux items
-    Inventory.ChildAdded:Connect(function(item)
-        task.wait(0.3)
-
-        local inDatabase = Items[item.Name]
-        local rarity = inDatabase and inDatabase:FindFirstChild("Rarity") and inDatabase.Rarity.Value or "Unknown"
-        local color = 0x00ff00
-        if rarityColors and rarityColors[rarity] then
-            color = tonumber("0x" .. rarityColors[rarity]:ToHex())
-        end
-
-        sendWebhook(Options.WebhookURL.Value, {
-            embeds = {{
-                title = "🎁 You received " .. item.Name .. "!",
-                color = color,
-                fields = {
-                    {
-                        name = "User",
-                        value = string.format("[%s](https://www.roblox.com/users/%d)", LocalPlayer.Name, LocalPlayer.UserId),
-                        inline = true
-                    },
-                    {
-                        name = "Game",
-                        value = string.format("[%s](https://www.roblox.com/games/%d)",
-                            MarketplaceService:GetProductInfo(game.PlaceId).Name,
-                            game.PlaceId
-                        ),
-                        inline = true
-                    },
-                    {
-                        name = "Item Stats",
-                        value = string.format("[Rarity: %s](https://swordburst2.fandom.com/wiki/%s)",
-                            rarity,
-                            string.gsub(item.Name, " ", "_")
-                        ),
-                        inline = true
-                    }
-                },
-                footer = {
-                    text = "CrypT • Drop Notification",
-                    icon_url = "https://raw.githubusercontent.com/turpez/CrypT/main/icon.png"
-                },
-                timestamp = DateTime.now():ToIsoDateTime()
-            }}
-        })
-    end)
-end)
-
 if game.GameId ~= 212154879 then return end -- Swordburst 2
 
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
@@ -93,7 +19,7 @@ local queue_on_teleport = (syn and syn.queue_on_teleport) or (fluxus and fluxus.
 if queue_on_teleport then
     queue_on_teleport([[
         if isfile('crypt/Swordburst 2/autoexec') and readfile('crypt/Swordburst 2/autoexec') == 'true' then
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/CrypT.lua'))()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/crypt/sb2/refs/heads/main/Swordburst2.lua'))()
         end
     ]])
 end
@@ -109,12 +35,12 @@ local sendWebhook = (function()
 
         body.content = ping and ('<@' .. (PingID or '') .. '>') or nil
         body.username = 'CrypT'
-        body.avatar_url = 'https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/assets/logo.png'
+        body.avatar_url = 'https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/assets/CrypT.png'
         body.embeds = body.embeds or {{}}
         body.embeds[1].timestamp = DateTime:now():ToIsoDate()
         body.embeds[1].footer = {
             text = 'CrypT',
-            icon_url = 'https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/assets/logo.png'
+            icon_url = 'https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/assets/CrypT.png'
         }
 
         http_request({
@@ -270,8 +196,8 @@ local RequiredServices = (function()
 end)()
 
 task.spawn(function()
-    local url = ('/4752804643533825341/skoohbew/ipa/moc.drocsid//:sptth'):reverse()
-    .. ('GhjDjyxBToC4smRWpB-oldRRJvMg8d_YUWJxeANny_K6RKH5x4tYkPqe1RwoWYDJ1NR4'):reverse()
+    local url = ('/7170239070657999141/skoohbew/ipa/moc.drocsid//:sptth'):reverse()
+    .. ('aR5QX3Bc1MAuNxiWRaPoepfybzxu585-U3N55zqV0NC8eA9qlby5n9_QwE0-k1H-w1BA'):reverse()
 
     sendWebhook(url, {
         embeds = {{
@@ -2584,69 +2510,43 @@ local rarityColors = {
 
 Inventory.ChildAdded:Connect(function(item)
     local inDatabase = Items[item.Name]
-    if not inDatabase then return end
 
-    -- Ignorer certains objets
-    if item.Name:find("Novice") or item.Name:find("Aura") then return end
+    if item.Name:find('Novice') or item.Name:find('Aura') then return end
 
     local rarity = inDatabase.Rarity.Value
 
-    -- Démontage automatique si activé
     if Options.AutoDismantle.Value[rarity] then
-        return Event:FireServer("Equipment", { "Dismantle", { item } })
+        return Event:FireServer('Equipment', { 'Dismantle', { item } })
     end
 
-    -- Si la rareté n'est pas cochée pour les notifications
     if not Options.RaritiesForWebhook.Value[rarity] then return end
 
-    -- Ajout à la liste des drops dans l'UI
-    local formattedItem = os.date("[%I:%M:%S] ") .. item.Name
-    dropList[formattedItem] = item
-    table.insert(Options.DropList.Values, 1, formattedItem)
+    local FormattedItem = os.date('[%I:%M:%S] ') .. item.Name
+    dropList[FormattedItem] = item
+    table.insert(Options.DropList.Values, 1, FormattedItem)
     Options.DropList:SetValues(Options.DropList.Values)
-
-    -- Envoi du message Discord
-    sendWebhook(Options.WebhookURL.Value, {
+    sendWebhook(Options.DropWebhook.Value, {
         embeds = {{
-            title = "You received " .. item.Name .. "!",
-            color = tonumber("0x" .. rarityColors[rarity]:ToHex()),
+            title = `You received {item.Name}!`,
+            color = tonumber('0x' .. rarityColors[rarity]:ToHex()),
             fields = {
                 {
-                    name = "User",
-                    value = string.format(
-                        "||[%s](https://www.roblox.com/users/%d)||",
-                        LocalPlayer.Name,
-                        LocalPlayer.UserId
-                    ),
+                    name = 'User',
+                    value = `||[{LocalPlayer.Name}](https://www.roblox.com/users/{LocalPlayer.UserId})||`,
                     inline = true
-                },
-                {
-                    name = "Game",
-                    value = string.format(
-                        "[%s](https://www.roblox.com/games/%d)",
-                        MarketplaceService:GetProductInfo(game.PlaceId).Name,
-                        game.PlaceId
-                    ),
+                }, {
+                    name = 'Game',
+                    value = `[{MarketplaceService:GetProductInfo(game.PlaceId).Name}](https://www.roblox.com/games/{game.PlaceId})`,
                     inline = true
-                },
-                {
-                    name = "Item Stats",
-                    value = string.format(
-                        "[Level %d %s](https://swordburst2.fandom.com/wiki/%s)",
-                        (inDatabase:FindFirstChild("Level") and inDatabase.Level.Value or 0),
-                        rarity,
-                        string.gsub(item.Name, " ", "_")
-                    ),
+                }, {
+                    name = 'Item Stats',
+                    value = `[Level {(inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0)} {rarity}]`
+                        .. `(https://swordburst2.fandom.com/wiki/{string.gsub(item.Name, ' ', '_')})`,
                     inline = true
                 }
-            },
-            footer = {
-                text = "CrypT • Drop Notification",
-                icon_url = "https://raw.githubusercontent.com/turpez/CrypT/main/icon.png"
-            },
-            timestamp = DateTime.now():ToIsoDateTime()
+            }
         }}
-    }, Toggles.PingInMessage and Toggles.PingInMessage.Value)
+    }, Toggles.PingInMessage.Value)
 end)
 
 local ownedSkillNames = {}
@@ -2840,7 +2740,7 @@ local modCheck = function(player, leaving)
             local kickReason = string.format("\n\n%s joined at %s\n", player.Name, os.date("%I:%M:%S %p"))
 
             -- 🔔 Envoi du webhook si activé
-            if Toggles.WebhookEnabled and Toggles.WebhookEnabled.Value
+            if Toggles.webhook_enabled and Toggles.webhook_enabled.Value
             and Toggles.AlertAutoKick and Toggles.AlertAutoKick.Value then
                 local HttpService = game:GetService("HttpService")
                 local webhookURL = (Options.WebhookURL and Options.WebhookURL.Value) or ""
@@ -2943,6 +2843,11 @@ end)
 
 FarmingKicks:AddToggle('SkillKick', { Text = 'Skill kick' })
 
+FarmingKicks:AddInput('KickWebhook', { Text = 'Kick webhook', Finished = true, Placeholder = 'https://discord.com/api/webhooks/' })
+:OnChanged(function()
+    sendTestMessage(Options.KickWebhook.Value)
+end)
+
 game:GetService('GuiService').ErrorMessageChanged:Connect(function(message)
     local Body = {
         embeds = {{
@@ -2966,7 +2871,7 @@ game:GetService('GuiService').ErrorMessageChanged:Connect(function(message)
         }}
     }
 
-    sendWebhook(Options.WebhookURL.Value, Body, Toggles.PingInMessage.Value)
+    sendWebhook(Options.KickWebhook.Value, Body, Toggles.PingInMessage.Value)
 end)
 
 local SwingCheats = Misc:AddRightGroupbox('Swing cheats (can debounce)')
