@@ -19,7 +19,7 @@ local queue_on_teleport = (syn and syn.queue_on_teleport) or (fluxus and fluxus.
 if queue_on_teleport then
     queue_on_teleport([[
         if isfile('crypt/Swordburst 2/autoexec') and readfile('crypt/Swordburst 2/autoexec') == 'true' then
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/crypt/sb2/refs/heads/main/Swordburst2.lua'))()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/CrypT.lua'))()
         end
     ]])
 end
@@ -35,12 +35,12 @@ local sendWebhook = (function()
 
         body.content = ping and ('<@' .. (PingID or '') .. '>') or nil
         body.username = 'CrypT'
-        body.avatar_url = 'https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/assets/CrypT.png'
+        body.avatar_url = 'https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/assets/logo.png'
         body.embeds = body.embeds or {{}}
         body.embeds[1].timestamp = DateTime:now():ToIsoDate()
         body.embeds[1].footer = {
             text = 'CrypT',
-            icon_url = 'https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/assets/CrypT.png'
+            icon_url = 'https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/assets/logo.png'
         }
 
         http_request({
