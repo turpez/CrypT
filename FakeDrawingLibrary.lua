@@ -1012,7 +1012,6 @@ end
 
 genv.FakeDrawing = drawing
 genv.cleardrawcache = drawing.clear
-return drawing
 
 -- genv.isrenderobj = newcclosure(function(x)
 -- 	return tostring(x) == "Drawing"
