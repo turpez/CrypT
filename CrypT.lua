@@ -2525,7 +2525,7 @@ Inventory.ChildAdded:Connect(function(item)
     dropList[FormattedItem] = item
     table.insert(Options.DropList.Values, 1, FormattedItem)
     Options.DropList:SetValues(Options.DropList.Values)
-    sendWebhook(Options.DropWebhook.Value, {
+    sendWebhook(Options.WebhookURL.Value, {
         embeds = {{
             title = `You received {item.Name}!`,
             color = tonumber('0x' .. rarityColors[rarity]:ToHex()),
@@ -2740,7 +2740,7 @@ local modCheck = function(player, leaving)
             local kickReason = string.format("\n\n%s joined at %s\n", player.Name, os.date("%I:%M:%S %p"))
 
             -- 🔔 Envoi du webhook si activé
-            if Toggles.webhook_enabled and Toggles.webhook_enabled.Value
+            if Toggles.WebhookEnabled and Toggles.WebhookEnabled.Value
             and Toggles.AlertAutoKick and Toggles.AlertAutoKick.Value then
                 local HttpService = game:GetService("HttpService")
                 local webhookURL = (Options.WebhookURL and Options.WebhookURL.Value) or ""
@@ -2866,7 +2866,7 @@ game:GetService('GuiService').ErrorMessageChanged:Connect(function(message)
         }}
     }
 
-    sendWebhook(Options.KickWebhook.Value, Body, Toggles.PingInMessage.Value)
+    sendWebhook(Options.WebhookURL.Value, Body, Toggles.PingInMessage.Value)
 end)
 
 local SwingCheats = Misc:AddRightGroupbox('Swing cheats (can debounce)')
