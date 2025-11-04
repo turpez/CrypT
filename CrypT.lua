@@ -5,6 +5,89 @@ if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
+-- 🔽 Ajout : Détection de drops + notification Discord 🔽
+task.spawn(function()
+    local Players = game:GetService("Players")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local MarketplaceService = game:GetService("MarketplaceService")
+    local LocalPlayer = Players.LocalPlayer
+
+    -- 🔍 Fonction pour trouver dynamiquement l’inventaire du joueur
+    local function getInventory()
+        local profiles = ReplicatedStorage:WaitForChild("Profiles", 10)
+        if not profiles then return nil end
+
+        local profile = profiles:FindFirstChild(LocalPlayer.Name)
+        if not profile then
+            repeat
+                task.wait(0.5)
+                profile = profiles:FindFirstChild(LocalPlayer.Name)
+            until profile
+        end
+
+        return profile:WaitForChild("Inventory")
+    end
+
+    local Inventory = getInventory()
+    if not Inventory then
+        sendWebhook(Options.WebhookURL.Value, {
+            content = "❌ Impossible de trouver l'inventaire du joueur."
+        })
+        return
+    end
+
+    -- Confirmation du hook actif
+    sendWebhook(Options.WebhookURL.Value, {
+        content = "✅ Hook activé sur l'inventaire de " .. LocalPlayer.Name
+    })
+
+    -- 🎁 Détection de drops
+    Inventory.ChildAdded:Connect(function(item)
+        task.wait(0.3)
+        local inDatabase = Items[item.Name]
+        local rarity = inDatabase and inDatabase:FindFirstChild("Rarity") and inDatabase.Rarity.Value or "Unknown"
+        local color = 0x00ff00
+        if rarityColors and rarityColors[rarity] then
+            color = tonumber("0x" .. rarityColors[rarity]:ToHex())
+        end
+
+        sendWebhook(Options.WebhookURL.Value, {
+            embeds = {{
+                title = "🎁 You received " .. item.Name .. "!",
+                color = color,
+                fields = {
+                    {
+                        name = "User",
+                        value = string.format("[%s](https://www.roblox.com/users/%d)", LocalPlayer.Name, LocalPlayer.UserId),
+                        inline = true
+                    },
+                    {
+                        name = "Game",
+                        value = string.format("[%s](https://www.roblox.com/games/%d)",
+                            MarketplaceService:GetProductInfo(game.PlaceId).Name,
+                            game.PlaceId
+                        ),
+                        inline = true
+                    },
+                    {
+                        name = "Item Stats",
+                        value = string.format("[Rarity: %s](https://swordburst2.fandom.com/wiki/%s)",
+                            rarity,
+                            string.gsub(item.Name, " ", "_")
+                        ),
+                        inline = true
+                    }
+                },
+                footer = {
+                    text = "CrypT • Drop Notification",
+                    icon_url = "https://raw.githubusercontent.com/turpez/CrypT/main/icon.png"
+                },
+                timestamp = DateTime.now():ToIsoDateTime()
+            }}
+        })
+    end)
+end)
+
 if game.GameId ~= 212154879 then return end -- Swordburst 2
 
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
