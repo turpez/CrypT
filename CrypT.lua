@@ -2510,43 +2510,69 @@ local rarityColors = {
 
 Inventory.ChildAdded:Connect(function(item)
     local inDatabase = Items[item.Name]
+    if not inDatabase then return end
 
-    if item.Name:find('Novice') or item.Name:find('Aura') then return end
+    -- Ignorer certains objets
+    if item.Name:find("Novice") or item.Name:find("Aura") then return end
 
     local rarity = inDatabase.Rarity.Value
 
+    -- Démontage automatique si activé
     if Options.AutoDismantle.Value[rarity] then
-        return Event:FireServer('Equipment', { 'Dismantle', { item } })
+        return Event:FireServer("Equipment", { "Dismantle", { item } })
     end
 
+    -- Si la rareté n'est pas cochée pour les notifications
     if not Options.RaritiesForWebhook.Value[rarity] then return end
 
-    local FormattedItem = os.date('[%I:%M:%S] ') .. item.Name
-    dropList[FormattedItem] = item
-    table.insert(Options.DropList.Values, 1, FormattedItem)
+    -- Ajout à la liste des drops dans l'UI
+    local formattedItem = os.date("[%I:%M:%S] ") .. item.Name
+    dropList[formattedItem] = item
+    table.insert(Options.DropList.Values, 1, formattedItem)
     Options.DropList:SetValues(Options.DropList.Values)
+
+    -- Envoi du message Discord
     sendWebhook(Options.WebhookURL.Value, {
         embeds = {{
-            title = `You received {item.Name}!`,
-            color = tonumber('0x' .. rarityColors[rarity]:ToHex()),
+            title = "You received " .. item.Name .. "!",
+            color = tonumber("0x" .. rarityColors[rarity]:ToHex()),
             fields = {
                 {
-                    name = 'User',
-                    value = `||[{LocalPlayer.Name}](https://www.roblox.com/users/{LocalPlayer.UserId})||`,
+                    name = "User",
+                    value = string.format(
+                        "||[%s](https://www.roblox.com/users/%d)||",
+                        LocalPlayer.Name,
+                        LocalPlayer.UserId
+                    ),
                     inline = true
-                }, {
-                    name = 'Game',
-                    value = `[{MarketplaceService:GetProductInfo(game.PlaceId).Name}](https://www.roblox.com/games/{game.PlaceId})`,
+                },
+                {
+                    name = "Game",
+                    value = string.format(
+                        "[%s](https://www.roblox.com/games/%d)",
+                        MarketplaceService:GetProductInfo(game.PlaceId).Name,
+                        game.PlaceId
+                    ),
                     inline = true
-                }, {
-                    name = 'Item Stats',
-                    value = `[Level {(inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0)} {rarity}]`
-                        .. `(https://swordburst2.fandom.com/wiki/{string.gsub(item.Name, ' ', '_')})`,
+                },
+                {
+                    name = "Item Stats",
+                    value = string.format(
+                        "[Level %d %s](https://swordburst2.fandom.com/wiki/%s)",
+                        (inDatabase:FindFirstChild("Level") and inDatabase.Level.Value or 0),
+                        rarity,
+                        string.gsub(item.Name, " ", "_")
+                    ),
                     inline = true
                 }
-            }
+            },
+            footer = {
+                text = "CrypT • Drop Notification",
+                icon_url = "https://raw.githubusercontent.com/turpez/CrypT/main/icon.png"
+            },
+            timestamp = DateTime.now():ToIsoDateTime()
         }}
-    }, Toggles.PingInMessage.Value)
+    }, Toggles.PingInMessage and Toggles.PingInMessage.Value)
 end)
 
 local ownedSkillNames = {}
@@ -3184,62 +3210,6 @@ WebhookRight:AddToggle("AlertAutoKick", {
 })
 
 WebhookRight:AddLabel("Toutes les alertes sont envoyées sur ton webhook configuré.")
-
-local Players = game:GetService('Players')
-local MarketplaceService = game:GetService('MarketplaceService')
-local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local LocalPlayer = Players.LocalPlayer
-
--- Attente du profil et de l’inventaire
-local Profiles = ReplicatedStorage:WaitForChild('Profiles')
-local Profile = Profiles:WaitForChild(LocalPlayer.Name)
-local Inventory = Profile:WaitForChild('Inventory')
-local Items = ReplicatedStorage:WaitForChild('Items')
-
--- Couleurs par rareté (comme Swordburst2.lua)
-local rarityColors = {
-    Common = Color3.fromRGB(255, 255, 255),
-    Uncommon = Color3.fromRGB(0, 255, 0),
-    Rare = Color3.fromRGB(0, 170, 255),
-    Legendary = Color3.fromRGB(255, 170, 0),
-    Godly = Color3.fromRGB(255, 85, 255),
-    Unique = Color3.fromRGB(255, 0, 0)
-}
-
-Inventory.ChildAdded:Connect(function(item)
-    task.wait(0.3)
-
-    local inDatabase = Items:FindFirstChild(item.Name)
-    if not inDatabase then return end
-
-    local rarity = inDatabase:FindFirstChild('Rarity') and inDatabase.Rarity.Value or 'Common'
-    local rarityColor = rarityColors[rarity] or Color3.fromRGB(255, 255, 255)
-    local level = (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value) or 0
-
-    sendWebhook(Options.WebhookURL.Value, {
-        embeds = {{
-            title = string.format("You received %s!", item.Name),
-            color = tonumber('0x' .. rarityColor:ToHex()),
-            fields = {
-                {
-                    name = "User",
-                    value = string.format("||[%s](https://www.roblox.com/users/%s)||", LocalPlayer.Name, LocalPlayer.UserId),
-                    inline = true
-                },
-                {
-                    name = "Game",
-                    value = string.format("[%s](https://www.roblox.com/games/%s)", MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
-                    inline = true
-                },
-                {
-                    name = "Item Stats",
-                    value = string.format("[Level %d %s](https://swordburst2.fandom.com/wiki/%s)", level, rarity, string.gsub(item.Name, " ", "_")),
-                    inline = true
-                }
-            }
-        }}
-    })
-end)
 
 Menu:AddLabel('Menu keybind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true })
 
