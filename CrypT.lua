@@ -3185,6 +3185,29 @@ WebhookRight:AddToggle("AlertAutoKick", {
 
 WebhookRight:AddLabel("Toutes les alertes sont envoyées sur ton webhook configuré.")
 
+local Players = game:GetService('Players')
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+
+-- Attente du profil et de l'inventaire
+local Profiles = ReplicatedStorage:WaitForChild('Profiles')
+local Profile = Profiles:WaitForChild(LocalPlayer.Name)
+local Inventory = Profile:WaitForChild('Inventory')
+
+Inventory.ChildAdded:Connect(function(item)
+    -- Attente que l’item soit complètement chargé
+    task.wait(0.2)
+
+    -- Envoi du message Discord
+    sendWebhook(Options.WebhookURL.Value, {
+        embeds = {{
+            title = "🎁 Nouvel objet obtenu !",
+            description = string.format("**%s** vient de drop **%s**", LocalPlayer.Name, item.Name),
+            color = 0x00ff00
+        }}
+    })
+end)
+
 Menu:AddLabel('Menu keybind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true })
 
 Library.ToggleKeybind = Options.MenuKeybind
