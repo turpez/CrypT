@@ -5,45 +5,36 @@ if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
--- 🔽 Ajout : Détection de drops + notification Discord 🔽
 task.spawn(function()
     local Players = game:GetService("Players")
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local MarketplaceService = game:GetService("MarketplaceService")
     local LocalPlayer = Players.LocalPlayer
 
-    -- 🔍 Fonction pour trouver dynamiquement l’inventaire du joueur
-    local function getInventory()
-        local profiles = ReplicatedStorage:WaitForChild("Profiles", 10)
-        if not profiles then return nil end
-
-        local profile = profiles:FindFirstChild(LocalPlayer.Name)
-        if not profile then
-            repeat
-                task.wait(0.5)
-                profile = profiles:FindFirstChild(LocalPlayer.Name)
-            until profile
-        end
-
-        return profile:WaitForChild("Inventory")
-    end
-
-    local Inventory = getInventory()
-    if not Inventory then
-        sendWebhook(Options.WebhookURL.Value, {
-            content = "❌ Impossible de trouver l'inventaire du joueur."
-        })
+    -- 🔍 Attente du profil du joueur
+    local Profiles = ReplicatedStorage:WaitForChild("Profiles", 10)
+    if not Profiles then
+        sendWebhook(Options.WebhookURL.Value, {content = "❌ Impossible de trouver 'Profiles'."})
         return
     end
 
-    -- Confirmation du hook actif
+    local Profile
+    repeat
+        task.wait(0.5)
+        Profile = Profiles:FindFirstChild(LocalPlayer.Name)
+    until Profile
+
+    local Inventory = Profile:WaitForChild("Inventory")
+
+    -- ✅ Confirmation que le hook est actif
     sendWebhook(Options.WebhookURL.Value, {
         content = "✅ Hook activé sur l'inventaire de " .. LocalPlayer.Name
     })
 
-    -- 🎁 Détection de drops
+    -- 🎁 Détection des nouveaux items
     Inventory.ChildAdded:Connect(function(item)
         task.wait(0.3)
+
         local inDatabase = Items[item.Name]
         local rarity = inDatabase and inDatabase:FindFirstChild("Rarity") and inDatabase.Rarity.Value or "Unknown"
         local color = 0x00ff00
