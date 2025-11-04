@@ -2484,6 +2484,19 @@ local Rarities = { 'Common', 'Uncommon', 'Rare', 'Legendary', 'Tribute' }
 
 Drops:AddDropdown('AutoDismantle', { Text = 'Auto dismantle', Values = Rarities, Multi = true, AllowNull = true })
 
+Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://discord.com/api/webhooks/' })
+:OnChanged(sendTestMessage)
+
+Drops:AddInput('PingID', {
+    Text = 'Ping ID',
+    Placeholder = 'Ex: 987654321098765432'
+})
+:OnChanged(function(value)
+    PingID = value
+end)
+
+Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
+
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
 local dropList = {}
@@ -2727,7 +2740,6 @@ ModDetector:AddSlider('PanicDelay', { Text = 'Panic delay', Default = 15, Min = 
 
 local modCheck = function(player, leaving)
     if player == LocalPlayer or not table.find(mods, player.UserId) then return end
-
     Library:Notify(`Mod {player.Name} {leaving and 'left' or 'joined'} your game at {os.date('%I:%M:%S %p')}`, 60)
 
     if leaving then return end
@@ -2736,43 +2748,7 @@ local modCheck = function(player, leaving)
 
     task.delay(Options.KickDelay.Value, function()
         if Toggles.Autokick.Value then
-            -- 🧠 Raison exacte du kick
-            local kickReason = string.format("\n\n%s joined at %s\n", player.Name, os.date("%I:%M:%S %p"))
-
-            -- 🔔 Envoi du webhook si activé
-            if Toggles.webhook_enabled and Toggles.webhook_enabled.Value
-            and Toggles.AlertAutoKick and Toggles.AlertAutoKick.Value then
-                local HttpService = game:GetService("HttpService")
-                local webhookURL = (Options.WebhookURL and Options.WebhookURL.Value) or ""
-                local ping = (Options.WebhookPing and Options.WebhookPing.Value) or ""
-
-                if webhookURL ~= "" then
-                    local body = {
-                        content = ping ~= "" and ("<@" .. ping .. ">") or nil,
-                        embeds = {{
-                            title = "🚨 Autokick exécuté",
-                            description = "Le joueur **" .. LocalPlayer.Name .. "** a été kick automatiquement suite à la détection d’un modérateur.",
-                            color = 0xFF0000,
-                            fields = {
-                                { name = "Mod détecté", value = player.Name, inline = true },
-                                { name = "Raison du kick", value = kickReason, inline = false },
-                                { name = "Heure", value = os.date("%H:%M:%S"), inline = true }
-                            },
-                            footer = { text = "CrypT Notifications" }
-                        }}
-                    }
-
-                    request({
-                        Url = webhookURL,
-                        Method = "POST",
-                        Headers = { ["Content-Type"] = "application/json" },
-                        Body = HttpService:JSONEncode(body)
-                    })
-                end
-            end
-
-            -- 🚪 Exécution du vrai kick
-            LocalPlayer:Kick(kickReason)
+            LocalPlayer:Kick(`\n\n{player.Name} joined at {os.date('%I:%M:%S %p')}\n`)
         end
     end)
 
@@ -3110,85 +3086,6 @@ end)
 local Settings = Window:AddTab('Settings', 'settings')
 
 local Menu = Settings:AddLeftGroupbox('Menu', 'menu')
-
-local NotifTab = Window:AddTab({ 
-    Name = "Notifications", 
-    Icon = "bell", 
-    Description = "Alertes et Webhooks Discord" 
-})
-
--- 🔔 Contenu de l'onglet Notifications
-local WebhookLeft = NotifTab:AddLeftGroupbox("Webhook Discord")
-
-WebhookLeft:AddToggle("WebhookEnabled", {
-    Text = "Activer l'envoi via Webhook",
-    Default = false
-})
-
-WebhookLeft:AddInput("WebhookURL", {
-    Text = "URL du Webhook",
-    Placeholder = "https://discord.com/api/webhooks/..."
-})
-
-WebhookLeft:AddInput("WebhookPing", {
-    Text = "ID à ping (optionnel)",
-    Placeholder = "Ex: 987654321098765432"
-})
-
-WebhookLeft:AddButton("📡 Envoyer un message test", function()
-    local HttpService = game:GetService("HttpService")
-    local url = Options.WebhookURL.Value
-    local ping = Options.WebhookPing.Value
-
-    if not url or url == "" then
-        Library:Notify("⚠️ Aucun webhook configuré.", 4)
-        return
-    end
-
-    local body = {
-        content = ping ~= "" and ("<@" .. ping .. ">") or nil,
-        embeds = {{
-            title = "✅ Test CrypT",
-            description = "Les notifications Discord fonctionnent parfaitement !",
-            color = 0x00FFFF,
-            footer = { text = "CrypT Notifications" }
-        }}
-    }
-
-    request({
-        Url = url,
-        Method = "POST",
-        Headers = { ["Content-Type"] = "application/json" },
-        Body = HttpService:JSONEncode(body)
-    })
-
-    Library:Notify("✅ Message de test envoyé avec succès !", 4)
-end)
-
--- Colonne de droite : alertes automatiques
-local WebhookRight = NotifTab:AddRightGroupbox("Alertes automatiques")
-
-WebhookRight:AddToggle("AlertDrop", {
-    Text = "Notifier les nouveaux drops",
-    Default = true
-})
-
-WebhookRight:AddToggle("AlertBoss", {
-    Text = "Notifier l'apparition d'un boss",
-    Default = false
-})
-
-WebhookRight:AddToggle("AlertDeath", {
-    Text = "Notifier la mort du joueur",
-    Default = false
-})
-
-WebhookRight:AddToggle("AlertAutoKick", {
-    Text = "Notifier quand l'AutoKick se déclenche",
-    Default = true
-})
-
-WebhookRight:AddLabel("Toutes les alertes sont envoyées sur ton webhook configuré.")
 
 Menu:AddLabel('Menu keybind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true })
 
