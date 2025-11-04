@@ -18,8 +18,8 @@ end
 local queue_on_teleport = (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport) or queue_on_teleport
 if queue_on_teleport then
     queue_on_teleport([[
-        if isfile('crypt/Swordburst 2/autoexec') and readfile('crypt/Swordburst 2/autoexec') == 'true' then
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/crypt/sb2/refs/heads/main/Swordburst2.lua'))()
+        if isfile('CrypT/Swordburst 2/autoexec') and readfile('CrypT/Swordburst 2/autoexec') == 'true' then
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/turpez/CrypT/main/CrypT.lua'))()
         end
     ]])
 end
