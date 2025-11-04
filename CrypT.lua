@@ -3186,24 +3186,57 @@ WebhookRight:AddToggle("AlertAutoKick", {
 WebhookRight:AddLabel("Toutes les alertes sont envoyées sur ton webhook configuré.")
 
 local Players = game:GetService('Players')
-local LocalPlayer = Players.LocalPlayer
+local MarketplaceService = game:GetService('MarketplaceService')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local LocalPlayer = Players.LocalPlayer
 
--- Attente du profil et de l'inventaire
+-- Attente du profil et de l’inventaire
 local Profiles = ReplicatedStorage:WaitForChild('Profiles')
 local Profile = Profiles:WaitForChild(LocalPlayer.Name)
 local Inventory = Profile:WaitForChild('Inventory')
+local Items = ReplicatedStorage:WaitForChild('Items')
+
+-- Couleurs par rareté (comme Swordburst2.lua)
+local rarityColors = {
+    Common = Color3.fromRGB(255, 255, 255),
+    Uncommon = Color3.fromRGB(0, 255, 0),
+    Rare = Color3.fromRGB(0, 170, 255),
+    Legendary = Color3.fromRGB(255, 170, 0),
+    Godly = Color3.fromRGB(255, 85, 255),
+    Unique = Color3.fromRGB(255, 0, 0)
+}
 
 Inventory.ChildAdded:Connect(function(item)
-    -- Attente que l’item soit complètement chargé
-    task.wait(0.2)
+    task.wait(0.3)
 
-    -- Envoi du message Discord
+    local inDatabase = Items:FindFirstChild(item.Name)
+    if not inDatabase then return end
+
+    local rarity = inDatabase:FindFirstChild('Rarity') and inDatabase.Rarity.Value or 'Common'
+    local rarityColor = rarityColors[rarity] or Color3.fromRGB(255, 255, 255)
+    local level = (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value) or 0
+
     sendWebhook(Options.WebhookURL.Value, {
         embeds = {{
-            title = "🎁 Nouvel objet obtenu !",
-            description = string.format("**%s** vient de drop **%s**", LocalPlayer.Name, item.Name),
-            color = 0x00ff00
+            title = string.format("You received %s!", item.Name),
+            color = tonumber('0x' .. rarityColor:ToHex()),
+            fields = {
+                {
+                    name = "User",
+                    value = string.format("||[%s](https://www.roblox.com/users/%s)||", LocalPlayer.Name, LocalPlayer.UserId),
+                    inline = true
+                },
+                {
+                    name = "Game",
+                    value = string.format("[%s](https://www.roblox.com/games/%s)", MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
+                    inline = true
+                },
+                {
+                    name = "Item Stats",
+                    value = string.format("[Level %d %s](https://swordburst2.fandom.com/wiki/%s)", level, rarity, string.gsub(item.Name, " ", "_")),
+                    inline = true
+                }
+            }
         }}
     })
 end)
