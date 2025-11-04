@@ -7,6 +7,15 @@
 if getgenv().CrypT then return end
 getgenv().CrypT = true
 
+if game.PlaceId ~= 212154879 then
+    warn("CrypT : mauvais jeu, arrêt du script.")
+    return
+end
+
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
 local BASE_URL = "https://raw.githubusercontent.com/turpez/CrypT/refs/heads/main/modules/"
 
 -- Fonction utilitaire pour charger les modules depuis GitHub
