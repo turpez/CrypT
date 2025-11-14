@@ -1703,46 +1703,18 @@ Killaura:AddDropdown('MiscSkillToUse', { Text = 'Misc skill to use', Values = {}
         end
         self._connections.stamina = Stamina.Changed:Connect(func)
     elseif name == 'Cursed Enhancement' then
-        -- On désactive l'ancien système basé sur KillauraSkill
-        self._onKillauraSkill = nil
-
-        -- Fonction interne pour tenter de lancer CE
-        local function tryCE()
-            -- Toggle désactivé → on stoppe
-            if not Toggles.AutoCursedEnhancement or not Toggles.AutoCursedEnhancement.Value then
-                return
-            end
-
-            -- Cooldown ? → stop
-            if self.OnCooldown then
-                return
-            end
-
-            -- CE actif ? → inutile de relancer
-            if Character:GetAttribute('CursedEnhancement') then
-                return
-            end
-
-            -- Stamina ≥ 60%
-            local required = Stamina.MaxValue * 0.60
-            if Stamina.Value < required then
-                return
-            end
-
-            -- On lance CE
+        self._onKillauraSkill = function()
+            if Stamina.Value < (self.Cost + KillauraSkill.Cost) then return end
+            if self.OnCooldown then return end
             self._use()
+            awaitEventTimeout(
+                Character:GetAttributeChangedSignal('CursedEnhancement'),
+                function()
+                    return Character:GetAttribute('CursedEnhancement')
+                end,
+                0.1
+            )
         end
-
-        -- Boucle automatique toutes les 32 secondes
-        task.spawn(function()
-            while true do
-                task.wait(32)
-                tryCE()
-            end
-        end)
-
-        -- Premier lancement immédiat
-        tryCE()
     end
 end)
 
