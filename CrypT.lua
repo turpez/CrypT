@@ -1343,21 +1343,30 @@ end)()
 local MiscSkill = {}
 
 KillauraSkill._use = function()
-    if MiscSkill._onKillauraSkill then
-        MiscSkill._onKillauraSkill()
-    end
     local self = KillauraSkill
+
+    -- 🔥 ACTIVE CURSED ENHANCEMENT AVANT LE COUP (si sélectionné et prêt)
+    if MiscSkill.Name == "Cursed Enhancement" and MiscSkill._onHit then
+        MiscSkill._onHit()
+    end
+
+    -- 🔥 ENVOI DE L'ATTAQUE KILLAURA
     Event:FireServer('Skills', { 'UseSkill', self.Name })
+
+    -- Gestion cooldown / comportement
     self.OnCooldown = true
     self.Active = true
+
     task.delay(2.5, function()
         self.LastHit = true
         task.wait(0.5)
         self.LastHit = false
         self.Active = false
+
         if Toggles.ResetOnLowStamina.Value and Stamina.Value < KillauraSkill.Cost then
             Humanoid.Health = 0
         end
+
         task.wait(self.Cooldown - 3)
         self.OnCooldown = false
     end)
@@ -1650,24 +1659,32 @@ MiscSkill.Init = function(name, cost, cooldown)
     self.Cost = cost or 0
     self.Cooldown = cooldown or 0
     self.OnCooldown = false
+
+    -- Clean up old connections
     for _, connection in self._connections or {} do
         connection:Disconnect()
     end
+
     self._connections = {}
-    self._onKillauraSkill = nil
+    self._onHit = nil -- utilisé pour Cursed Enhancement
 end
 
 MiscSkill.Init()
 
 MiscSkill._use = function()
     local self = MiscSkill
+
     Event:FireServer('Skills', { 'UseSkill', self.Name })
     self.OnCooldown = true
+
     task.delay(self.Cooldown, function()
         self.OnCooldown = false
     end)
 end
 
+
+
+-- SELECTION DU SKILL DANS LE MENU
 Killaura:AddDropdown('MiscSkillToUse', { Text = 'Misc skill to use', Values = {}, AllowNull = true })
 :OnChanged(function(value)
     local self = MiscSkill
@@ -1685,6 +1702,9 @@ Killaura:AddDropdown('MiscSkillToUse', { Text = 'Misc skill to use', Values = {}
         inDatabase.Cooldown.Value
     )
 
+    --------------------------------------------------
+    -- HEAL / MENDING SPIRIT
+    --------------------------------------------------
     if name == 'Heal' or name == 'Mending Spirit' then
         local func = function()
             if Stamina.Value < self.Cost then return end
@@ -1692,8 +1712,13 @@ Killaura:AddDropdown('MiscSkillToUse', { Text = 'Misc skill to use', Values = {}
             if (Health.Value / Health.MaxValue) > 0.66 then return end
             self._use()
         end
+
         self._connections.health = Health.Changed:Connect(func)
         self._connections.stamina = Stamina.Changed:Connect(func)
+
+    --------------------------------------------------
+    -- SUMMON TREE
+    --------------------------------------------------
     elseif name == 'Summon Tree' then
         local func = function()
             if Stamina.Value < self.Cost then return end
@@ -1701,23 +1726,29 @@ Killaura:AddDropdown('MiscSkillToUse', { Text = 'Misc skill to use', Values = {}
             if Stamina.Value > 66 then return end
             self._use()
         end
+
         self._connections.stamina = Stamina.Changed:Connect(func)
+
+    --------------------------------------------------
+    -- CURSED ENHANCEMENT (FINAL VERSION BG 🔥)
+    --------------------------------------------------
     elseif name == 'Cursed Enhancement' then
-        self._onKillauraSkill = function()
-            if Stamina.Value < (self.Cost + KillauraSkill.Cost) then return end
+        self._onHit = function()
+            -- CE se déclenche SEULEMENT si :
+            -- - cooldown fini
+            -- - stamina suffisante (60%)
+            -- - CE sélectionné
             if self.OnCooldown then return end
+            if Stamina.Value < self.Cost then return end
+
             self._use()
-            awaitEventTimeout(
-                Character:GetAttributeChangedSignal('CursedEnhancement'),
-                function()
-                    return Character:GetAttribute('CursedEnhancement')
-                end,
-                0.1
-            )
         end
     end
 end)
 
+
+
+-- AJOUT CE DANS LISTE SI LE JOUEUR LE POSSEDE
 if Profile.Skills:FindFirstChild('Cursed Enhancement') then
     table.insert(Options.MiscSkillToUse.Values, 'Cursed Enhancement (x2.5)')
     Options.MiscSkillToUse:SetValues(Options.MiscSkillToUse.Values)
@@ -1730,6 +1761,7 @@ else
         skillConnection:Disconnect()
     end)
 end
+
 
 if getLevel() >= 50 then
     table.insert(Options.MiscSkillToUse.Values, 'Heal (30%)')
