@@ -129,19 +129,23 @@ local function getFloorForLevel(level)
 end
 
 local function updateAutoFloor()
-    -- Si le toggle n’existe pas encore ou n’est pas activé, on ne fait rien
-    if not (Toggles and Toggles.AutoFloorProgression and Toggles.AutoFloorProgression.Value) then
+
+    -- sécurité
+    if not (Toggles.AutoFloorProgression and Toggles.AutoFloorProgression.Value) then
         return
     end
 
     local level = getLevel()
     local cfg = getFloorForLevel(level)
+
     if not cfg then return end
 
-    -- déjà sur le bon floor => rien à faire
-    if game.PlaceId == cfg.placeId then return end
+    -- déjà au bon floor ?
+    if game.PlaceId == cfg.placeId then
+        return
+    end
 
-    -- TP direct sur le bon floor
+    -- Téléportation au bon floor
     TeleportService:Teleport(cfg.placeId, LocalPlayer)
 end
 
@@ -766,16 +770,30 @@ end)
 
 Autofarm:AddToggle('AutoFloorProgression', { Text = 'Auto floor (1 → 11)' })
 :OnChanged(function(value)
-    if value then
-        -- On lance automatiquement l'autofarm + killaura
-        if not Toggles.Autofarm.Value then
-            Toggles.Autofarm:SetValue(true)
-        end
-        if not Toggles.Killaura.Value then
-            Toggles.Killaura:SetValue(true)
-        end
 
-        -- On check directement si on doit changer de floor
+    if value then
+        -- ON ↗
+        -- activation auto
+        Toggles.Autofarm:SetValue(true)
+        Toggles.Killaura:SetValue(true)
+
+        -- check instantané
+        updateAutoFloor()
+
+    else
+        -- OFF ↘
+        -- on désactive tout
+        if Toggles.Autofarm.Value then
+            Toggles.Autofarm:SetValue(false)
+        end
+        if Toggles.Killaura.Value then
+            Toggles.Killaura:SetValue(false)
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(2) do
         updateAutoFloor()
     end
 end)
