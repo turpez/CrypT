@@ -64,8 +64,6 @@ local sendTestMessage = function(url)
     )
 end
 
-local Options, Toggles -- seront remplis après le load de la Library
-
 local Players = game:GetService('Players')
 local LocalPlayer = Players.LocalPlayer
 if not LocalPlayer then
@@ -99,74 +97,6 @@ local getLevel = function(value)
 end
 local Vel = Exp.Parent:WaitForChild('Vel')
 
--- =========================
--- Auto floor configuration
--- =========================
-
-local floorConfig = {
-    { name = "Floor 1",  min = 1,   max = 15 },
-    { name = "Floor 2",  min = 15,  max = 24 },
-    { name = "Floor 3",  min = 24,  max = 35 },
-    { name = "Floor 4",  min = 35,  max = 45 },
-    { name = "Floor 5",  min = 46,  max = 50 },
-    { name = "Floor 7",  min = 59,  max = 65 },
-    { name = "Floor 8",  min = 70,  max = 75 },
-    { name = "Floor 9",  min = 78,  max = 85 },
-    { name = "Floor 10", min = 88,  max = 110 },
-    { name = "Floor 11", min = 110, max = 200 },
-}
-
-local function getFloorForLevel(level)
-    for _, f in ipairs(floorConfig) do
-        if level >= f.min and level < f.max then
-            return f
-        end
-    end
-    return nil
-end
-
-local function teleportToSpawn()
-    Event:FireServer('Checkpoints', { 'TeleportToSpawn' })
-    task.wait(3) -- temps pour que le TP se fasse réellement
-end
-
-local function teleportToFloor(floorName)
-    local pad = mapTeleports[floorName]
-    if not pad then 
-        warn("Pad introuvable pour : " .. floorName)
-        return 
-    end
-
-    firetouchinterest(HumanoidRootPart, pad, 0)
-    firetouchinterest(HumanoidRootPart, pad, 1)
-end
-
-local function updateAutoFloor()
-
-    if not (Toggles.AutoFloorProgression and Toggles.AutoFloorProgression.Value) then
-        return
-    end
-
-    local level = getLevel()
-    local floor = getFloorForLevel(level)
-    if not floor then return end
-
-    -- déjà au bon floor ?
-    if Options.AutoFarmFloor and Options.AutoFarmFloor.Value == floor.name then
-        return
-    end
-
-    -- retourne au spawn
-    teleportToSpawn()
-
-    -- téléporte au bon floor via pad
-    teleportToFloor(floor.name)
-
-    -- met à jour l’option dans le menu
-    Options.AutoFarmFloor:SetValue(floor.name)
-end
-
-
 local Database = ReplicatedStorage:WaitForChild('Database')
 local Items = Database:WaitForChild('Items')
 local Skills = Database:WaitForChild('Skills')
@@ -197,7 +127,6 @@ local Stepped = RunService.Stepped
 local UserInputService = game:GetService('UserInputService')
 local MarketplaceService = game:GetService('MarketplaceService')
 local StarterGui = game:GetService('StarterGui')
-local TeleportService = game:GetService('TeleportService')
 
 pcall(function()
     for _, connection in getconnections(LocalPlayer.Idled) do
@@ -302,8 +231,8 @@ end)
 local UIRepo = 'https://raw.githubusercontent.com/Neuublue/Obsidian/main/'
 local Library = loadstring(game:HttpGet(UIRepo .. 'Library.lua'))()
 
-Options = Library.Options
-Toggles = Library.Toggles
+local Options = Library.Options
+local Toggles = Library.Toggles
 
 local lastUpdated = (function()
     local success, result = pcall(function()
@@ -784,29 +713,6 @@ Autofarm:AddSlider('AutofarmRadius', {
 Autofarm:AddToggle('UseWaypoint', { Text = 'Use waypoint' }):OnChanged(function(value)
     waypoint.CFrame = HumanoidRootPart.CFrame
     waypointLabel.Visible = value
-end)
-
-Autofarm:AddToggle('AutoFloorProgression', { Text = 'Auto floor (1 → 11)' })
-:OnChanged(function(value)
-    if value then
-        Toggles.Autofarm:SetValue(true)
-        Toggles.Killaura:SetValue(true)
-        updateAutoFloor()
-    else
-        if Toggles.Autofarm.Value then Toggles.Autofarm:SetValue(false) end
-        if Toggles.Killaura.Value then Toggles.Killaura:SetValue(false) end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(2) do
-        updateAutoFloor()
-    end
-end)
-
--- Quand le level change, on check si on doit changer de floor
-Level.Changed:Connect(function()
-    updateAutoFloor()
 end)
 
 local mobList = (function()
