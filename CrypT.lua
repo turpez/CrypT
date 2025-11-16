@@ -104,50 +104,68 @@ local Vel = Exp.Parent:WaitForChild('Vel')
 -- =========================
 
 local floorConfig = {
-    { name = 'Floor 1',  placeId = 542351431,  min = 1,   max = 15 },
-    { name = 'Floor 2',  placeId = 548231754,  min = 15,  max = 24 },
-    { name = 'Floor 3',  placeId = 555980327,  min = 24,  max = 35 },
-    { name = 'Floor 4',  placeId = 572487908,  min = 35,  max = 45 },
-    { name = 'Floor 5',  placeId = 580239979,  min = 46,  max = 50 },
-    { name = 'Floor 7',  placeId = 582198062,  min = 59,  max = 65 },
-    { name = 'Floor 8',  placeId = 548878321,  min = 70,  max = 75 },
-    { name = 'Floor 9',  placeId = 573267292,  min = 78,  max = 85 },
-    { name = 'Floor 10', placeId = 2659143505, min = 88,  max = 110 },
-    { name = 'Floor 11', placeId = 5287433115, min = 110, max = 200 },
+    { name = "Floor 1",  min = 1,   max = 15 },
+    { name = "Floor 2",  min = 15,  max = 24 },
+    { name = "Floor 3",  min = 24,  max = 35 },
+    { name = "Floor 4",  min = 35,  max = 45 },
+    { name = "Floor 5",  min = 46,  max = 50 },
+    { name = "Floor 7",  min = 59,  max = 65 },
+    { name = "Floor 8",  min = 70,  max = 75 },
+    { name = "Floor 9",  min = 78,  max = 85 },
+    { name = "Floor 10", min = 88,  max = 110 },
+    { name = "Floor 11", min = 110, max = 200 },
 }
 
 local function getFloorForLevel(level)
-    local selected
-    for _, cfg in ipairs(floorConfig) do
-        if level >= cfg.min and level <= cfg.max then
-            -- si plusieurs ranges touchent le même level (ex: 15),
-            -- on garde le dernier => plus haut floor possible
-            selected = cfg
+    for _, f in ipairs(floorConfig) do
+        if level >= f.min and level < f.max then
+            return f
         end
     end
-    return selected
+    return nil
+end
+
+local function teleportToSpawn()
+    Event:FireServer('Checkpoints', { 'TeleportToSpawn' })
+    task.wait(3) -- temps pour que le TP se fasse réellement
+end
+
+local function teleportToFloor(floorName)
+    local pad = mapTeleports[floorName]
+    if not pad then 
+        warn("Pad introuvable pour : " .. floorName)
+        return 
+    end
+
+    firetouchinterest(HumanoidRootPart, pad, 0)
+    firetouchinterest(HumanoidRootPart, pad, 1)
 end
 
 local function updateAutoFloor()
 
-    -- sécurité
     if not (Toggles.AutoFloorProgression and Toggles.AutoFloorProgression.Value) then
         return
     end
 
     local level = getLevel()
-    local cfg = getFloorForLevel(level)
-
-    if not cfg then return end
+    local floor = getFloorForLevel(level)
+    if not floor then return end
 
     -- déjà au bon floor ?
-    if game.PlaceId == cfg.placeId then
+    if Options.AutoFarmFloor and Options.AutoFarmFloor.Value == floor.name then
         return
     end
 
-    -- Téléportation au bon floor
-    TeleportService:Teleport(cfg.placeId, LocalPlayer)
+    -- retourne au spawn
+    teleportToSpawn()
+
+    -- téléporte au bon floor via pad
+    teleportToFloor(floor.name)
+
+    -- met à jour l’option dans le menu
+    Options.AutoFarmFloor:SetValue(floor.name)
 end
+
 
 local Database = ReplicatedStorage:WaitForChild('Database')
 local Items = Database:WaitForChild('Items')
@@ -770,25 +788,13 @@ end)
 
 Autofarm:AddToggle('AutoFloorProgression', { Text = 'Auto floor (1 → 11)' })
 :OnChanged(function(value)
-
     if value then
-        -- ON ↗
-        -- activation auto
         Toggles.Autofarm:SetValue(true)
         Toggles.Killaura:SetValue(true)
-
-        -- check instantané
         updateAutoFloor()
-
     else
-        -- OFF ↘
-        -- on désactive tout
-        if Toggles.Autofarm.Value then
-            Toggles.Autofarm:SetValue(false)
-        end
-        if Toggles.Killaura.Value then
-            Toggles.Killaura:SetValue(false)
-        end
+        if Toggles.Autofarm.Value then Toggles.Autofarm:SetValue(false) end
+        if Toggles.Killaura.Value then Toggles.Killaura:SetValue(false) end
     end
 end)
 
