@@ -64,6 +64,8 @@ local sendTestMessage = function(url)
     )
 end
 
+local Options, Toggles -- seront remplis après le load de la Library
+
 local Players = game:GetService('Players')
 local LocalPlayer = Players.LocalPlayer
 if not LocalPlayer then
@@ -97,6 +99,52 @@ local getLevel = function(value)
 end
 local Vel = Exp.Parent:WaitForChild('Vel')
 
+-- =========================
+-- Auto floor configuration
+-- =========================
+
+local floorConfig = {
+    { name = 'Floor 1',  placeId = 542351431,  min = 1,   max = 15 },
+    { name = 'Floor 2',  placeId = 548231754,  min = 15,  max = 24 },
+    { name = 'Floor 3',  placeId = 555980327,  min = 24,  max = 35 },
+    { name = 'Floor 4',  placeId = 572487908,  min = 35,  max = 45 },
+    { name = 'Floor 5',  placeId = 580239979,  min = 46,  max = 50 },
+    { name = 'Floor 7',  placeId = 582198062,  min = 59,  max = 65 },
+    { name = 'Floor 8',  placeId = 548878321,  min = 70,  max = 75 },
+    { name = 'Floor 9',  placeId = 573267292,  min = 78,  max = 85 },
+    { name = 'Floor 10', placeId = 2659143505, min = 88,  max = 110 },
+    { name = 'Floor 11', placeId = 5287433115, min = 110, max = 200 },
+}
+
+local function getFloorForLevel(level)
+    local selected
+    for _, cfg in ipairs(floorConfig) do
+        if level >= cfg.min and level <= cfg.max then
+            -- si plusieurs ranges touchent le même level (ex: 15),
+            -- on garde le dernier => plus haut floor possible
+            selected = cfg
+        end
+    end
+    return selected
+end
+
+local function updateAutoFloor()
+    -- Si le toggle n’existe pas encore ou n’est pas activé, on ne fait rien
+    if not (Toggles and Toggles.AutoFloorProgression and Toggles.AutoFloorProgression.Value) then
+        return
+    end
+
+    local level = getLevel()
+    local cfg = getFloorForLevel(level)
+    if not cfg then return end
+
+    -- déjà sur le bon floor => rien à faire
+    if game.PlaceId == cfg.placeId then return end
+
+    -- TP direct sur le bon floor
+    TeleportService:Teleport(cfg.placeId, LocalPlayer)
+end
+
 local Database = ReplicatedStorage:WaitForChild('Database')
 local Items = Database:WaitForChild('Items')
 local Skills = Database:WaitForChild('Skills')
@@ -127,6 +175,7 @@ local Stepped = RunService.Stepped
 local UserInputService = game:GetService('UserInputService')
 local MarketplaceService = game:GetService('MarketplaceService')
 local StarterGui = game:GetService('StarterGui')
+local TeleportService = game:GetService('TeleportService')
 
 pcall(function()
     for _, connection in getconnections(LocalPlayer.Idled) do
@@ -231,8 +280,8 @@ end)
 local UIRepo = 'https://raw.githubusercontent.com/Neuublue/Obsidian/main/'
 local Library = loadstring(game:HttpGet(UIRepo .. 'Library.lua'))()
 
-local Options = Library.Options
-local Toggles = Library.Toggles
+Options = Library.Options
+Toggles = Library.Toggles
 
 local lastUpdated = (function()
     local success, result = pcall(function()
@@ -713,6 +762,27 @@ Autofarm:AddSlider('AutofarmRadius', {
 Autofarm:AddToggle('UseWaypoint', { Text = 'Use waypoint' }):OnChanged(function(value)
     waypoint.CFrame = HumanoidRootPart.CFrame
     waypointLabel.Visible = value
+end)
+
+Autofarm:AddToggle('AutoFloorProgression', { Text = 'Auto floor (1 → 11)' })
+:OnChanged(function(value)
+    if value then
+        -- On lance automatiquement l'autofarm + killaura
+        if not Toggles.Autofarm.Value then
+            Toggles.Autofarm:SetValue(true)
+        end
+        if not Toggles.Killaura.Value then
+            Toggles.Killaura:SetValue(true)
+        end
+
+        -- On check directement si on doit changer de floor
+        updateAutoFloor()
+    end
+end)
+
+-- Quand le level change, on check si on doit changer de floor
+Level.Changed:Connect(function()
+    updateAutoFloor()
 end)
 
 local mobList = (function()
