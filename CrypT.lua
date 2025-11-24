@@ -1465,6 +1465,63 @@ local swingFunction = (function()
     end
 end)()
 
+-- Global Killaura (attaque tous les mobs de la map)
+Killaura:AddToggle('GlobalKillaura', { Text = 'Global killaura (ALL mobs)' }):OnChanged(function(value)
+    -- On évite que le killaura normal tourne en même temps
+    if value and Toggles.Killaura.Value then
+        Toggles.Killaura:SetValue(false)
+    end
+
+    -- Pas de hitbox requise pour full-map → on désactive les dégâts au contact
+    if value then
+        toggleSwingDamage(false)
+    else
+        -- On ne ré-active que si le killaura normal est aussi off
+        if not Toggles.Killaura.Value then
+            toggleSwingDamage(true)
+        end
+    end
+
+    while Toggles.GlobalKillaura.Value do
+        -- petit délai custom
+        local delay = (Options.GlobalKillauraDelay and Options.GlobalKillauraDelay.Value) or 0.15
+        task.wait(delay)
+
+        if Humanoid.Health == 0 then
+            continue
+        end
+
+        local attacked = false
+
+        -- 🔥 ATTACK ALL MOBS 🔥
+        for _, target in next, Mobs:GetChildren() do
+            if onCooldown[target] then continue end
+            if isDead(target) then continue end
+            if Options.IgnoreMobs.Value[target.Name] then continue end
+
+            -- réutilise la logique d’attaque déjà ultra optimisée
+            if attack(target) then
+                attacked = true
+            end
+        end
+
+        -- Swing visuel si activé
+        if Toggles.KillauraSwing.Value then
+            if swingFunction then
+                if attacked then
+                    task.spawn(swingFunction)
+                end
+            elseif RequiredServices then
+                if attacked then
+                    task.spawn(RequiredServices.Actions.StartSwing)
+                else
+                    task.spawn(RequiredServices.Actions.StopSwing)
+                end
+            end
+        end
+    end
+end)
+
 Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
     toggleSwingDamage(false)
     while Toggles.Killaura.Value do
@@ -1545,6 +1602,14 @@ Killaura:AddSlider('KillauraDelay', {
     FormatDisplayValue = function(slider, value)
         if value < 0.3 then return `{value}s/{slider.Max}s (debounce!)` end
 	end
+})
+Killaura:AddSlider('GlobalKillauraDelay', {
+    Text = 'Global delay',
+    Default = 0.15,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Suffix = 's'
 })
 Killaura:AddSlider('KillauraThreads', {
     Text = 'Threads',
