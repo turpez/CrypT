@@ -1465,8 +1465,6 @@ local swingFunction = (function()
     end
 end)()
 
-Killaura:AddToggle('GlobalKillaura', { Text = 'Global (zones chargées)' })
-
 Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
     toggleSwingDamage(false)
     while Toggles.Killaura.Value do
@@ -1489,17 +1487,13 @@ Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
                 targetPos += rootPart.BodyVelocity.VectorVelocity.Unit
             end
             local range = Options.KillauraRange.Value
-            if Toggles.GlobalKillaura.Value then
-                -- portée infinie = tous les mobs chargés
+            -- si le slider est au max -> portée infinie (tous les mobs chargés)
+            if range == Options.KillauraRange.Max then
                 range = math.huge
-            elseif range == Options.KillauraRange.Max then
-                range = math.max(rootPart.Size.X, rootPart.Size.Z) * 0.5 + 20
             end
-
             if (targetPos - HumanoidRootPart.Position).Magnitude > range then
                 continue
             end
-
             attacked = attack(target)
         end
 
