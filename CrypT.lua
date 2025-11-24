@@ -1456,6 +1456,55 @@ local attack = function(target)
     return true
 end
 
+----------------------------------------------------------------------
+-- 🔥 GLOBAL KILLAURA (tape tous les mobs chargés) 🔥
+----------------------------------------------------------------------
+
+local GlobalKillauraEnabled = false
+
+task.spawn(function()
+    while true do
+        if GlobalKillauraEnabled then
+            
+            -- boucle sur les mobs chargés
+            for _, mob in next, Mobs:GetChildren() do
+
+                -- ignore si : mort, cooldown, blacklisté
+                if isDead(mob) then continue end
+                if onCooldown[mob] then continue end
+                if Options.IgnoreMobs.Value[mob.Name] then continue end
+
+                -- attaque via le moteur CrypT officiel
+                attack(mob)
+            end
+        end
+
+        -- Réutilise le delay du Killaura normal
+        task.wait( Options.KillauraDelay.Value )
+    end
+end)
+
+-- Bouton UI dans l’onglet Killaura
+Killaura:AddToggle("GlobalKillaura", {
+    Text = "Global Killaura (zones chargées)",
+    Default = false
+}):OnChanged(function(v)
+
+    GlobalKillauraEnabled = v
+
+    if v then
+        -- pour éviter les conflits
+        if Toggles.Killaura.Value then
+            Toggles.Killaura:SetValue(false)
+        end
+        
+        -- désactive les dégâts par contact (patch SB2)
+        toggleSwingDamage(false)
+    else
+        toggleSwingDamage(true)
+    end
+end)
+
 local swingFunction = (function()
     if not getgc then return end
     for _, func in next, getgc() do
@@ -1464,63 +1513,6 @@ local swingFunction = (function()
         end
     end
 end)()
-
--- Global Killaura (attaque tous les mobs de la map)
-Killaura:AddToggle('GlobalKillaura', { Text = 'Global killaura (ALL mobs)' }):OnChanged(function(value)
-    -- On évite que le killaura normal tourne en même temps
-    if value and Toggles.Killaura.Value then
-        Toggles.Killaura:SetValue(false)
-    end
-
-    -- Pas de hitbox requise pour full-map → on désactive les dégâts au contact
-    if value then
-        toggleSwingDamage(false)
-    else
-        -- On ne ré-active que si le killaura normal est aussi off
-        if not Toggles.Killaura.Value then
-            toggleSwingDamage(true)
-        end
-    end
-
-    while Toggles.GlobalKillaura.Value do
-        -- petit délai custom
-        local delay = (Options.GlobalKillauraDelay and Options.GlobalKillauraDelay.Value) or 0.15
-        task.wait(delay)
-
-        if Humanoid.Health == 0 then
-            continue
-        end
-
-        local attacked = false
-
-        -- 🔥 ATTACK ALL MOBS 🔥
-        for _, target in next, Mobs:GetChildren() do
-            if onCooldown[target] then continue end
-            if isDead(target) then continue end
-            if Options.IgnoreMobs.Value[target.Name] then continue end
-
-            -- réutilise la logique d’attaque déjà ultra optimisée
-            if attack(target) then
-                attacked = true
-            end
-        end
-
-        -- Swing visuel si activé
-        if Toggles.KillauraSwing.Value then
-            if swingFunction then
-                if attacked then
-                    task.spawn(swingFunction)
-                end
-            elseif RequiredServices then
-                if attacked then
-                    task.spawn(RequiredServices.Actions.StartSwing)
-                else
-                    task.spawn(RequiredServices.Actions.StopSwing)
-                end
-            end
-        end
-    end
-end)
 
 Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
     toggleSwingDamage(false)
@@ -1602,14 +1594,6 @@ Killaura:AddSlider('KillauraDelay', {
     FormatDisplayValue = function(slider, value)
         if value < 0.3 then return `{value}s/{slider.Max}s (debounce!)` end
 	end
-})
-Killaura:AddSlider('GlobalKillauraDelay', {
-    Text = 'Global delay',
-    Default = 0.15,
-    Min = 0,
-    Max = 1,
-    Rounding = 2,
-    Suffix = 's'
 })
 Killaura:AddSlider('KillauraThreads', {
     Text = 'Threads',
