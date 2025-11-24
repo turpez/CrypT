@@ -1465,6 +1465,30 @@ local swingFunction = (function()
     end
 end)()
 
+local function attackWithFakeTP(enemy)
+    local hrp = HumanoidRootPart
+    local enemyRoot = enemy:FindFirstChild("HumanoidRootPart")
+    if not enemyRoot then return false end
+
+    -- Sauvegarde la position du joueur
+    local originalCFrame = hrp.CFrame
+
+    -- TP sur l’ennemi pendant UNE FRAME
+    hrp.CFrame = enemyRoot.CFrame
+
+    -- Envoie l’attaque
+    local success = attack(enemy)
+
+    -- Retour instant
+    task.wait() -- une frame
+    hrp.CFrame = originalCFrame
+
+    -- petit cooldown anti-ban
+    task.wait(0.05)
+
+    return success
+end
+
 Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
     toggleSwingDamage(false)
     while Toggles.Killaura.Value do
@@ -1486,18 +1510,14 @@ Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
             if rootPart:FindFirstChild('BodyVelocity') and rootPart.BodyVelocity.VectorVelocity.Magnitude > 0 then
                 targetPos += rootPart.BodyVelocity.VectorVelocity.Unit
             end
-
             local range = Options.KillauraRange.Value
-
-            -- 🔥 FIX : portée infinie quand slider au max
             if range == Options.KillauraRange.Max then
-                range = math.huge
+                range = math.max(rootPart.Size.X, rootPart.Size.Z) * 0.5 + 20
             end
-
             if (targetPos - HumanoidRootPart.Position).Magnitude > range then
                 continue
             end
-            attacked = attack(target)
+            attacked = attackWithFakeTP(target)
         end
 
         if Toggles.AttackPlayers.Value then
@@ -1508,24 +1528,20 @@ Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
                 if not target then continue end
                 if onCooldown[target] then continue end
                 if isDead(target) then continue end
-
                 local rootPart = target.HumanoidRootPart
                 local range = Options.KillauraRange.Value
-
-                -- 🔥 FIX : portée infinie aussi pour les joueurs
                 if range == Options.KillauraRange.Max then
-                    range = math.huge
+                    range = math.max(rootPart.Size.X, rootPart.Size.Z) * 0.5 + 20
                 end
-
                 if (rootPart.Position - HumanoidRootPart.Position).Magnitude > range then
                     continue
                 end
-                attacked = attack(target)
+                attacked = attackWithFakeTP(target)
             end
         end
 
         if Toggles.KillauraSwing.Value then
-            if swingFunction then
+            if swingFunction then -- this is preferred since it ignores the swinging state
                 if attacked then
                     task.spawn(swingFunction)
                 end
