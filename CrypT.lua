@@ -1465,30 +1465,6 @@ local swingFunction = (function()
     end
 end)()
 
-local function attackWithFakeTP(enemy)
-    local hrp = HumanoidRootPart
-    local enemyRoot = enemy:FindFirstChild("HumanoidRootPart")
-    if not enemyRoot then return false end
-
-    -- Sauvegarde la position du joueur
-    local originalCFrame = hrp.CFrame
-
-    -- TP sur l’ennemi pendant UNE FRAME
-    hrp.CFrame = enemyRoot.CFrame
-
-    -- Envoie l’attaque
-    local success = attack(enemy)
-
-    -- Retour instant
-    task.wait() -- une frame
-    hrp.CFrame = originalCFrame
-
-    -- petit cooldown anti-ban
-    task.wait(0.05)
-
-    return success
-end
-
 Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
     toggleSwingDamage(false)
     while Toggles.Killaura.Value do
@@ -1517,7 +1493,7 @@ Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
             if (targetPos - HumanoidRootPart.Position).Magnitude > range then
                 continue
             end
-            attacked = attackWithFakeTP(target)
+            attacked = attack(target)
         end
 
         if Toggles.AttackPlayers.Value then
@@ -1536,7 +1512,7 @@ Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
                 if (rootPart.Position - HumanoidRootPart.Position).Magnitude > range then
                     continue
                 end
-                attacked = attackWithFakeTP(target)
+                attacked = attack(target)
             end
         end
 
