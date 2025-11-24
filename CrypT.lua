@@ -1456,55 +1456,6 @@ local attack = function(target)
     return true
 end
 
-----------------------------------------------------------------------
--- 🔥 GLOBAL KILLAURA (tape tous les mobs chargés) 🔥
-----------------------------------------------------------------------
-
-local GlobalKillauraEnabled = false
-
-task.spawn(function()
-    while true do
-        if GlobalKillauraEnabled then
-            
-            -- boucle sur les mobs chargés
-            for _, mob in next, Mobs:GetChildren() do
-
-                -- ignore si : mort, cooldown, blacklisté
-                if isDead(mob) then continue end
-                if onCooldown[mob] then continue end
-                if Options.IgnoreMobs.Value[mob.Name] then continue end
-
-                -- attaque via le moteur CrypT officiel
-                attack(mob)
-            end
-        end
-
-        -- Réutilise le delay du Killaura normal
-        task.wait( Options.KillauraDelay.Value )
-    end
-end)
-
--- Bouton UI dans l’onglet Killaura
-Killaura:AddToggle("GlobalKillaura", {
-    Text = "Global Killaura (zones chargées)",
-    Default = false
-}):OnChanged(function(v)
-
-    GlobalKillauraEnabled = v
-
-    if v then
-        -- pour éviter les conflits
-        if Toggles.Killaura.Value then
-            Toggles.Killaura:SetValue(false)
-        end
-        
-        -- désactive les dégâts par contact (patch SB2)
-        toggleSwingDamage(false)
-    else
-        toggleSwingDamage(true)
-    end
-end)
-
 local swingFunction = (function()
     if not getgc then return end
     for _, func in next, getgc() do
@@ -1513,6 +1464,8 @@ local swingFunction = (function()
         end
     end
 end)()
+
+Killaura:AddToggle('GlobalKillaura', { Text = 'Global (zones chargées)' })
 
 Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
     toggleSwingDamage(false)
@@ -1536,12 +1489,17 @@ Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
                 targetPos += rootPart.BodyVelocity.VectorVelocity.Unit
             end
             local range = Options.KillauraRange.Value
-            if range == Options.KillauraRange.Max then
+            if Toggles.GlobalKillaura.Value then
+                -- portée infinie = tous les mobs chargés
+                range = math.huge
+            elseif range == Options.KillauraRange.Max then
                 range = math.max(rootPart.Size.X, rootPart.Size.Z) * 0.5 + 20
             end
+
             if (targetPos - HumanoidRootPart.Position).Magnitude > range then
                 continue
             end
+
             attacked = attack(target)
         end
 
