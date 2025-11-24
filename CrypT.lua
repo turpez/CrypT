@@ -1486,11 +1486,14 @@ Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
             if rootPart:FindFirstChild('BodyVelocity') and rootPart.BodyVelocity.VectorVelocity.Magnitude > 0 then
                 targetPos += rootPart.BodyVelocity.VectorVelocity.Unit
             end
+
             local range = Options.KillauraRange.Value
-            -- si le slider est au max -> portée infinie (tous les mobs chargés)
+
+            -- 🔥 FIX : portée infinie quand slider au max
             if range == Options.KillauraRange.Max then
                 range = math.huge
             end
+
             if (targetPos - HumanoidRootPart.Position).Magnitude > range then
                 continue
             end
@@ -1505,11 +1508,15 @@ Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
                 if not target then continue end
                 if onCooldown[target] then continue end
                 if isDead(target) then continue end
+
                 local rootPart = target.HumanoidRootPart
                 local range = Options.KillauraRange.Value
+
+                -- 🔥 FIX : portée infinie aussi pour les joueurs
                 if range == Options.KillauraRange.Max then
-                    range = math.max(rootPart.Size.X, rootPart.Size.Z) * 0.5 + 20
+                    range = math.huge
                 end
+
                 if (rootPart.Position - HumanoidRootPart.Position).Magnitude > range then
                     continue
                 end
@@ -1518,7 +1525,7 @@ Killaura:AddToggle('Killaura', { Text = 'Enabled' }):OnChanged(function()
         end
 
         if Toggles.KillauraSwing.Value then
-            if swingFunction then -- this is preferred since it ignores the swinging state
+            if swingFunction then
                 if attacked then
                     task.spawn(swingFunction)
                 end
