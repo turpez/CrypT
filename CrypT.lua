@@ -1,6 +1,20 @@
 if getgenv().CrypT then return end
 getgenv().CrypT = true
 
+-- Load JSON Data
+local HttpService = game:GetService("HttpService")
+
+local dropsData = {}
+local modsData = {}
+
+if isfile("CrypT/drops.json") then
+    dropsData = HttpService:JSONDecode(readfile("CrypT/drops.json"))
+end
+
+if isfile("CrypT/mods.json") then
+    modsData = HttpService:JSONDecode(readfile("CrypT/mods.json"))
+end
+
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
@@ -90,6 +104,20 @@ local Profile = Profiles:WaitForChild(LocalPlayer.Name)
 local Inventory = Profile:WaitForChild('Inventory')
 local AnimPacks = Profile:WaitForChild('AnimPacks')
 local Equip = Profile:WaitForChild('Equip')
+
+Inventory.ChildAdded:Connect(function(item)
+    task.wait(0.1)
+
+    local selected = Options.DropSelector.Value
+    if not selected then return end
+
+    local itemName = item.Name
+
+    if selected[itemName] then
+        -- Kick like the automod
+        LocalPlayer:Kick("Protected drop detected: " .. itemName)
+    end
+end)
 
 local Exp = Profile:WaitForChild('Stats'):WaitForChild('Exp')
 local getLevel = function(value)
@@ -1773,6 +1801,17 @@ end
 
 local AdditionalCheats = Main:AddRightGroupbox('Additional cheats')
 
+local currentFloor = game.PlaceId
+local floorDrops = dropsData[tostring(currentFloor)] or {}
+
+local DropUI = Main:AddRightGroupbox("Drop Protection")
+
+DropUI:AddDropdown("DropSelector", {
+    Text = "Select drops to block",
+    Values = floorDrops,
+    Multi = true,
+})
+
 if RequiredServices then
     local SetSprintingOld = RequiredServices.Actions.SetSprinting
     RequiredServices.Actions.SetSprinting = function(enabled)
@@ -2510,74 +2549,6 @@ Drops:AddDropdown('DropList', { Text = 'Drop list (select to dismantle)', Values
     table.remove(Options.DropList.Values, table.find(Options.DropList.Values, dropName))
 end)
 
-------------------------------------------------
--- Kick weapon on drop (par floor / inventaire)
-------------------------------------------------
-
--- Toggle + dropdown DANS le groupbox Drops (pas de nouveau groupbox)
-Drops:AddToggle('KickOnWeaponDrop', {
-    Text = 'Kick si je drop cette arme'
-})
-
-Drops:AddDropdown('WeaponKickList', {
-    Text = 'Arme à surveiller',
-    Values = {},
-    AllowNull = true
-})
-
--- Construit la liste d’armes disponibles pour ce floor
-local function RefreshWeaponKickList()
-    local weaponNames = {}
-    local hasFloor = false
-
-    -- On regarde si la DB Items utilise un attribut Floor
-    for _, dbItem in next, Items:GetChildren() do
-        if dbItem:FindFirstChild('Floor') then
-            hasFloor = true
-            break
-        end
-    end
-
-    if hasFloor then
-        -- Mode propre : uniquement les armes dont .Floor == PlaceId
-        for _, dbItem in next, Items:GetChildren() do
-            if dbItem:FindFirstChild('Type') and dbItem.Type.Value == 'Weapon' then
-                local floorVal = dbItem:FindFirstChild('Floor') and dbItem.Floor.Value
-                if floorVal == game.PlaceId then
-                    table.insert(weaponNames, dbItem.Name)
-                end
-            end
-        end
-    else
-        -- Fallback : on prend seulement les armes qu’il y a dans TON inventaire
-        for _, invItem in next, Inventory:GetChildren() do
-            local dbItem = Items:FindFirstChild(invItem.Name)
-            if dbItem and dbItem:FindFirstChild('Type') and dbItem.Type.Value == 'Weapon' then
-                if not table.find(weaponNames, invItem.Name) then
-                    table.insert(weaponNames, invItem.Name)
-                end
-            end
-        end
-    end
-
-    table.sort(weaponNames)
-
-    -- Si rien trouvé, on laisse la liste vide pour éviter les erreurs
-    Options.WeaponKickList:SetValues(weaponNames)
-end
-
--- On remplit la liste une première fois au chargement
-RefreshWeaponKickList()
-
--- On met à jour la liste quand l’inventaire change (nouvelle arme, etc.)
-Inventory.ChildAdded:Connect(function()
-    RefreshWeaponKickList()
-end)
-
-Inventory.ChildRemoved:Connect(function()
-    RefreshWeaponKickList()
-end)
-
 local rarityColors = {
     Empty = Color3.fromRGB(127, 127, 127),
     Common = Color3.fromRGB(255, 255, 255),
@@ -2628,18 +2599,6 @@ Inventory.ChildAdded:Connect(function(item)
             }
         }}
     }, Toggles.PingInMessage.Value)
-end)
-
--- Kick si on drop l'arme sélectionnée
-Inventory.ChildAdded:Connect(function(item)
-    if not Toggles.KickOnWeaponDrop.Value then return end
-    if not Options.WeaponKickList.Value then return end
-    if item.Name ~= Options.WeaponKickList.Value then return end
-
-    -- petite attente pour être sûr que tout est bien créé
-    task.wait(0.1)
-
-    LocalPlayer:Kick("\n\nYou dropped the selected weapon: " .. item.Name .. "\n")
 end)
 
 local ownedSkillNames = {}
@@ -2698,120 +2657,27 @@ local KickBox = Misc:AddLeftTabbox()
 
 local ModDetector = KickBox:AddTab('Mods')
 
-local mods = {
-    12671,
-    4402987,
-    7858636,
-    13444058,
-    24156180,
-    35311411,
-    38559058,
-    45035796,
-    48662268,
-    50879012,
-    51696441,
-    55715138,
-    57436909,
-    59341698,
-    60673083,
-    62240513,
-    66489540,
-    68210875,
-    72480719,
-    75043989,
-    76999375,
-    81113783,
-    90258662,
-    93988508,
-    101291900,
-    102706901,
-    104541778,
-    109105759,
-    111051084,
-    121104177,
-    129806297,
-    151751026,
-    154847513,
-    154876159,
-    161577703,
-    161949719,
-    163733925,
-    167655046,
-    167856414,
-    173116569,
-    184366742,
-    194755784,
-    220726786,
-    225179429,
-    269112100,
-    271388254,
-    309775741,
-    349854657,
-    354326302,
-    357870914,
-    358748060,
-    367879806,
-    371108489,
-    373676463,
-    429690599,
-    434696913,
-    440458342,
-    448343431,
-    454205259,
-    455293249,
-    461121215,
-    478848349,
-    500009807,
-    533787513,
-    542470517,
-    571218846,
-    575623917,
-    630696850,
-    810458354,
-    852819491,
-    874771971,
-    918971121,
-    1033291447,
-    1033291716,
-    1058240421,
-    1099119770,
-    1114937945,
-    1190978597,
-    1266604023,
-    1379309318,
-    1390415574,
-    1416070243,
-    1584345084,
-    1607227678,
-    1648776562,
-    1650372835,
-    1666720713,
-    1728535349,
-    1785469599,
-    1794965093,
-    1801714748,
-    1868318363,
-    1998442044,
-    2034822362,
-    2216826820,
-    2324028828,
-    2462374233,
-    2787915712,
-    360470140,
-    2475151189,
-    3522932153,
-    3772282131,
-    7557087747,
-    5536587740,
-    3931735673,
-    33903799,
-    22026533,
-    417576199,
-    80692318,
-    102583875,
-    492574273,
-    468344010,
-}
+local HttpService = game:GetService("HttpService")
+
+-- Fonction pour charger les données du fichier JSON
+local function loadModsData()
+    local modsData = {}
+    local filePath = "CrypT/mods.json"  -- Assure-toi que le chemin du fichier est correct
+    local fileContent = readfile(filePath)  -- Lis le contenu du fichier
+    if fileContent then
+        modsData = HttpService:JSONDecode(fileContent)  -- Décode le JSON dans une table Lua
+    end
+    return modsData.moderators  -- Renvoie la liste des modérateurs
+end
+
+-- Charger la liste des modérateurs depuis le fichier mods.json
+local mods = loadModsData()
+
+-- Exemple d'utilisation de la liste des mods dans ton script
+print("Liste des modérateurs :")
+for _, modId in ipairs(mods) do
+    print(modId)  -- Affiche l'ID de chaque modérateur
+end
 
 ModDetector:AddToggle('Autokick', { Text = 'Autokick' })
 ModDetector:AddSlider('KickDelay', { Text = 'Kick delay', Default = 30, Min = 0, Max = 60, Rounding = 0, Suffix = 's', Compact = true })
