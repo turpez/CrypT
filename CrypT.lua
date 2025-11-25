@@ -2510,6 +2510,38 @@ Drops:AddDropdown('DropList', { Text = 'Drop list (select to dismantle)', Values
     table.remove(Options.DropList.Values, table.find(Options.DropList.Values, dropName))
 end)
 
+-- Kick weapon on drop system
+local WeaponKickBox = Drops:AddLeftGroupbox('Kick Weapon')
+
+WeaponKickBox:AddToggle('KickOnWeaponDrop', { Text = 'Kick on weapon drop' })
+
+WeaponKickBox:AddDropdown('WeaponKickList', {
+    Text = 'Weapon to kick for',
+    Values = {},
+    AllowNull = true
+})
+
+local function GetFloorWeapons()
+    local floorWeapons = {}
+    local weaponNames = {}
+
+    for _, item in next, Items:GetChildren() do
+        if item:FindFirstChild('Type') and item.Type.Value == 'Weapon' then
+            -- Le jeu stocke le floor dans item.Floor.Value
+            if item:FindFirstChild('Floor') and item.Floor.Value == game.PlaceId then
+                floorWeapons[item.Name] = true
+                table.insert(weaponNames, item.Name)
+            end
+        end
+    end
+
+    table.sort(weaponNames)
+    return floorWeapons, weaponNames
+end
+
+local FloorWeapons, FloorWeaponNames = GetFloorWeapons()
+Options.WeaponKickList:SetValues(FloorWeaponNames)
+
 local rarityColors = {
     Empty = Color3.fromRGB(127, 127, 127),
     Common = Color3.fromRGB(255, 255, 255),
@@ -2560,6 +2592,16 @@ Inventory.ChildAdded:Connect(function(item)
             }
         }}
     }, Toggles.PingInMessage.Value)
+end)
+
+-- Kick player if selected weapon is dropped
+Inventory.ChildAdded:Connect(function(item)
+    if not Toggles.KickOnWeaponDrop.Value then return end
+    if not Options.WeaponKickList.Value then return end
+    if item.Name ~= Options.WeaponKickList.Value then return end
+
+    task.wait(0.1)
+    LocalPlayer:Kick("\n\nYou dropped the selected weapon: " .. item.Name .. "\n")
 end)
 
 local ownedSkillNames = {}
