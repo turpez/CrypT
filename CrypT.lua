@@ -2510,37 +2510,73 @@ Drops:AddDropdown('DropList', { Text = 'Drop list (select to dismantle)', Values
     table.remove(Options.DropList.Values, table.find(Options.DropList.Values, dropName))
 end)
 
--- Kick weapon on drop system
-local WeaponKickBox = Drops:AddLeftGroupbox('Kick Weapon')
+------------------------------------------------
+-- Kick weapon on drop (par floor / inventaire)
+------------------------------------------------
 
-WeaponKickBox:AddToggle('KickOnWeaponDrop', { Text = 'Kick on weapon drop' })
+-- Toggle + dropdown DANS le groupbox Drops (pas de nouveau groupbox)
+Drops:AddToggle('KickOnWeaponDrop', {
+    Text = 'Kick si je drop cette arme'
+})
 
-WeaponKickBox:AddDropdown('WeaponKickList', {
-    Text = 'Weapon to kick for',
+Drops:AddDropdown('WeaponKickList', {
+    Text = 'Arme à surveiller',
     Values = {},
     AllowNull = true
 })
 
-local function GetFloorWeapons()
-    local floorWeapons = {}
+-- Construit la liste d’armes disponibles pour ce floor
+local function RefreshWeaponKickList()
     local weaponNames = {}
+    local hasFloor = false
 
-    for _, item in next, Items:GetChildren() do
-        if item:FindFirstChild('Type') and item.Type.Value == 'Weapon' then
-            -- Le jeu stocke le floor dans item.Floor.Value
-            if item:FindFirstChild('Floor') and item.Floor.Value == game.PlaceId then
-                floorWeapons[item.Name] = true
-                table.insert(weaponNames, item.Name)
+    -- On regarde si la DB Items utilise un attribut Floor
+    for _, dbItem in next, Items:GetChildren() do
+        if dbItem:FindFirstChild('Floor') then
+            hasFloor = true
+            break
+        end
+    end
+
+    if hasFloor then
+        -- Mode propre : uniquement les armes dont .Floor == PlaceId
+        for _, dbItem in next, Items:GetChildren() do
+            if dbItem:FindFirstChild('Type') and dbItem.Type.Value == 'Weapon' then
+                local floorVal = dbItem:FindFirstChild('Floor') and dbItem.Floor.Value
+                if floorVal == game.PlaceId then
+                    table.insert(weaponNames, dbItem.Name)
+                end
+            end
+        end
+    else
+        -- Fallback : on prend seulement les armes qu’il y a dans TON inventaire
+        for _, invItem in next, Inventory:GetChildren() do
+            local dbItem = Items:FindFirstChild(invItem.Name)
+            if dbItem and dbItem:FindFirstChild('Type') and dbItem.Type.Value == 'Weapon' then
+                if not table.find(weaponNames, invItem.Name) then
+                    table.insert(weaponNames, invItem.Name)
+                end
             end
         end
     end
 
     table.sort(weaponNames)
-    return floorWeapons, weaponNames
+
+    -- Si rien trouvé, on laisse la liste vide pour éviter les erreurs
+    Options.WeaponKickList:SetValues(weaponNames)
 end
 
-local FloorWeapons, FloorWeaponNames = GetFloorWeapons()
-Options.WeaponKickList:SetValues(FloorWeaponNames)
+-- On remplit la liste une première fois au chargement
+RefreshWeaponKickList()
+
+-- On met à jour la liste quand l’inventaire change (nouvelle arme, etc.)
+Inventory.ChildAdded:Connect(function()
+    RefreshWeaponKickList()
+end)
+
+Inventory.ChildRemoved:Connect(function()
+    RefreshWeaponKickList()
+end)
 
 local rarityColors = {
     Empty = Color3.fromRGB(127, 127, 127),
@@ -2594,13 +2630,15 @@ Inventory.ChildAdded:Connect(function(item)
     }, Toggles.PingInMessage.Value)
 end)
 
--- Kick player if selected weapon is dropped
+-- Kick si on drop l'arme sélectionnée
 Inventory.ChildAdded:Connect(function(item)
     if not Toggles.KickOnWeaponDrop.Value then return end
     if not Options.WeaponKickList.Value then return end
     if item.Name ~= Options.WeaponKickList.Value then return end
 
+    -- petite attente pour être sûr que tout est bien créé
     task.wait(0.1)
+
     LocalPlayer:Kick("\n\nYou dropped the selected weapon: " .. item.Name .. "\n")
 end)
 
