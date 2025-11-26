@@ -2709,7 +2709,10 @@ Drops:AddToggle('EnableWeaponKick', {
     Default = false
 })
 :OnChanged(function(enabled)
+    local inDatabase = Items[item.Name]
 
+    local rarity = inDatabase.Rarity.Value
+    
     if not enabled then return end
 
     local function checkWeaponDrop(item)
