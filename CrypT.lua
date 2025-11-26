@@ -2706,7 +2706,7 @@ Drops:AddToggle('EnableWeaponKick', {
     Default = false
 }):OnChanged(function(value)
     if value then
-        -- Fonction pour vérifier l'arme dans l'inventaire et la comparer à celle sélectionnée dans la liste des drops
+        -- Fonction pour vérifier l'arme dans l'inventaire et la comparer à celles sélectionnées dans la liste des drops
         local function checkWeaponDrop(item)
             local selectedWeapons = Options.WeaponToKick.Value  -- Récupère les armes sélectionnées
 
@@ -2719,7 +2719,7 @@ Drops:AddToggle('EnableWeaponKick', {
                     -- Kick le joueur si l'arme correspond à celle sélectionnée
                     LocalPlayer:Kick("Vous avez droppé l'arme : " .. weapon)
 
-                    -- Envoi du message via webhook
+                    -- Envoi du message via webhook avec un ping si nécessaire
                     sendWebhook(Options.DropWebhook.Value, {
                         embeds = {{
                             title = 'Vous avez droppé une arme que vous avez sélectionnée',
