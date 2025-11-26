@@ -2703,18 +2703,6 @@ Drops:AddDropdown('WeaponToKick', {
     Options.WeaponToKick:SetValue(selected)
 end)
 
--- Dropdown MULTI correct
-Drops:AddDropdown('WeaponToKick', {
-    Text = "Sélectionner les armes à détecter",
-    Values = getWeaponsForCurrentFloor(),
-    Multi = true,
-    AllowNull = true
-})
-:OnChanged(function(selected)
-    print("Sélection :", selected)
-    Options.WeaponToKick:SetValue(selected)
-end)
-
 Drops:AddToggle('EnableWeaponKick', {
     Text = "Activer le kick pour les armes sélectionnées",
     Default = false
@@ -2742,7 +2730,7 @@ Drops:AddToggle('EnableWeaponKick', {
                 -- WEBHOOK
                 sendWebhook(Options.DropWebhook.Value, {
                     embeds = {{
-                        title = "🚫 Arme interdite détectée",
+                        title = "Arme choisi détectée",
                         description = string.format(
                             "Le joueur **%s** a été kick pour avoir droppé **%s**.",
                             LocalPlayer.Name, weapon
