@@ -2532,7 +2532,7 @@ end
 
 -- Ajouter un dropdown pour choisir l'arme à détecter pour l'auto-kick
 Drops:AddDropdown('WeaponToKick', {
-    Text = 'Select weapon to kick on equip',
+    Text = 'Sélectionner l\'arme à drop pour être kick',
     Values = getWeaponsForCurrentFloor(),  -- Affiche les armes de l'étage actuel
     AllowNull = true
 }):OnChanged(function(selectedWeapon)
@@ -2541,7 +2541,7 @@ Drops:AddDropdown('WeaponToKick', {
 end)
 
 Drops:AddToggle('EnableWeaponKick', {
-    Text = 'Enable weapon kick',
+    Text = 'Activer le kick d\'arme',
     Default = false
 }):OnChanged(function(value)
     if value then
@@ -2559,17 +2559,25 @@ Drops:AddToggle('EnableWeaponKick', {
 
                 if weaponInInventory then
                     -- Kick le joueur si l'arme est dans l'inventaire
-                    LocalPlayer:Kick("You have equipped the restricted weapon: " .. selectedWeapon)
+                    LocalPlayer:Kick("Tu as drop l'arme selectionné : " .. selectedWeapon)
 
                     -- Envoi du message via webhook
                     sendWebhook(Options.DropWebhook.Value, {
                         embeds = {{
-                            title = 'Weapon Kick!',
-                            description = "Player " .. LocalPlayer.Name .. " was kicked for equipping " .. selectedWeapon,
+                            title = "L'arme sélectionnée a été drop",
+                            description = "Le joueur " .. LocalPlayer.Name .. " a été kické pour avoir équipé l'arme " .. selectedWeapon,
                             color = 0xFF0000,
                             fields = {
-                                { name = 'Player', value = string.format("[%s](https://www.roblox.com/users/%s)", LocalPlayer.Name, LocalPlayer.UserId), inline = true },
-                                { name = 'Game', value = string.format("[%s](https://www.roblox.com/games/%d)", MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId), inline = true }
+                                { 
+                                    name = 'Joueur', 
+                                    value = string.format("[%s](https://www.roblox.com/users/%s)", LocalPlayer.Name, LocalPlayer.UserId), 
+                                    inline = true 
+                                },
+                                { 
+                                    name = 'Jeu', 
+                                    value = string.format("[%s](https://www.roblox.com/games/%d)", MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId), 
+                                    inline = true 
+                                }
                             }
                         }}
                     })
