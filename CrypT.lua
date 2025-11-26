@@ -2675,16 +2675,7 @@ local dropsData = {
     }}
 }
 
-local rarityColors = {
-    Empty = Color3.fromRGB(127, 127, 127),
-    Common = Color3.fromRGB(255, 255, 255),
-    Uncommon = Color3.fromRGB(64, 255, 102),
-    Rare = Color3.fromRGB(25, 182, 255),
-    Legendary = Color3.fromRGB(240, 69, 255),
-    Tribute = Color3.fromRGB(255, 208, 98),
-    Burst = Color3.fromRGB(81, 0, 1),
-    Error = Color3.fromRGB(255, 255, 255)
-}
+
 -- Fonction pour récupérer les armes de l'étage actuel
 local function getCurrentFloorID()
     return tostring(game.PlaceId) -- Utilisation du PlaceId pour obtenir l'étage actuel
@@ -2745,7 +2736,7 @@ Drops:AddToggle('EnableWeaponKick', {
                             "Le joueur **%s** a été kick pour avoir droppé **%s**.",
                             LocalPlayer.Name, weapon
                         ),
-                        color = tonumber('0x' .. rarityColors[rarity]:ToHex()),
+                        color = rarityColors[rarity] and tonumber("0x" .. rarityColors[rarity]:ToHex()) or 0xFFFFFF,
                         fields = {
                             {
                                 name = "Pseudo",
