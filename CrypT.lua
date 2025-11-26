@@ -2708,29 +2708,31 @@ Drops:AddToggle('EnableWeaponKick', {
     if value then
         -- Fonction pour vérifier l'arme dans l'inventaire et la comparer à celle sélectionnée dans la liste des drops
         local function checkWeaponDrop(item)
-            local selectedWeapon = Options.WeaponToKick.Value
+            local selectedWeapons = Options.WeaponToKick.Value  -- Récupère les armes sélectionnées
 
             -- Si aucune arme n'est sélectionnée, on ne fait rien
-            if not selectedWeapon then return end
+            if not selectedWeapons or #selectedWeapons == 0 then return end
 
-            -- Vérifie si l'item dropé correspond à l'arme sélectionnée
-            if item.Name == selectedWeapon then
-                -- Kick le joueur si l'arme correspond à celle sélectionnée
-                LocalPlayer:Kick("Vous avez droppé l\'arme: " .. selectedWeapon)
+            -- Vérifie si l'item dropé correspond à une des armes sélectionnées
+            for _, weapon in ipairs(selectedWeapons) do
+                if item.Name == weapon then
+                    -- Kick le joueur si l'arme correspond à celle sélectionnée
+                    LocalPlayer:Kick("Vous avez droppé l'arme : " .. weapon)
 
-                -- Envoi du message via webhook
-                sendWebhook(Options.DropWebhook.Value, {
-                    embeds = {{
-                        title = 'Vous avez droppé une arme que vous avez selectionnée',
-                        description = string.format("Le joueur %s a été kické pour avoir droppé l'arme %s", LocalPlayer.Name, selectedWeapon),
-                        color = 0xFF0000,
-                        fields = {
-                            { name = 'Player', value = string.format("[%s](https://www.roblox.com/users/%s)", LocalPlayer.Name, LocalPlayer.UserId), inline = true },
-                            { name = 'Game', value = string.format("[%s](https://www.roblox.com/games/%d)", MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId), inline = true },
-                            { name = 'Item Stats', value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "](https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")", inline = true }
-                        }
-                    }}
-                }, Toggles.PingInMessage.Value)
+                    -- Envoi du message via webhook
+                    sendWebhook(Options.DropWebhook.Value, {
+                        embeds = {{
+                            title = 'Vous avez droppé une arme que vous avez sélectionnée',
+                            description = string.format("Le joueur %s a été kické pour avoir droppé l'arme %s", LocalPlayer.Name, weapon),
+                            color = 0xFF0000,
+                            fields = {
+                                { name = 'Player', value = string.format("[%s](https://www.roblox.com/users/%s)", LocalPlayer.Name, LocalPlayer.UserId), inline = true },
+                                { name = 'Game', value = string.format("[%s](https://www.roblox.com/games/%d)", MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId), inline = true },
+                                { name = 'Item Stats', value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "](https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")", inline = true }
+                            }
+                        }}
+                    }, Toggles.PingInMessage.Value and string.format("<@%s>", Options.PingID.Value) or nil)  -- Si PingInMessage est activé, ajoute le ping
+                end
             end
         end
 
@@ -2740,7 +2742,6 @@ Drops:AddToggle('EnableWeaponKick', {
         end)
     end
 end)
-
 
 -- Traitement de la liste des drops
 local dropList = {}
