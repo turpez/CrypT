@@ -2691,63 +2691,77 @@ local function getWeaponsForCurrentFloor()
     end
 end
 
--- Ajouter un dropdown pour choisir plusieurs armes à kicker (uniquement celles du floor actuel)
+-- Dropdown MULTI correct
 Drops:AddDropdown('WeaponToKick', {
-    Text = 'Sélectionner les armes pour kick au drop',
-    Values = getWeaponsForCurrentFloor(),  -- Affiche uniquement les armes de l'étage actuel
-    Multi = true,  -- Permet la sélection multiple
+    Text = "Sélectionner les armes à détecter",
+    Values = getWeaponsForCurrentFloor(),
+    Multi = true,
     AllowNull = true
-}):OnChanged(function(selectedWeapons)
-    print("Armes sélectionnées : ", selectedWeapons)  -- Vérifie les armes sélectionnées
-    Options.WeaponToKick:SetValue(selectedWeapons)  -- Sauvegarde les armes choisies pour le kick
+})
+:OnChanged(function(selected)
+    print("Sélection :", selected)
+    Options.WeaponToKick:SetValue(selected)
 end)
 
 Drops:AddToggle('EnableWeaponKick', {
-    Text = 'Activer le kick pour les armes sélectionnées',
+    Text = "Activer le kick pour les armes sélectionnées",
     Default = false
-}):OnChanged(function(value)
-    if value then
-        -- Fonction pour vérifier l'arme dans l'inventaire et la comparer à celle sélectionnée dans la liste des drops
-        local function checkWeaponDrop(item)
-            local selectedWeapons = Options.WeaponToKick.Value  -- Récupère les armes sélectionnées
-            print("Armes sélectionnées pour kick : ", selectedWeapons)  -- Affiche les armes sélectionnées
+})
+:OnChanged(function(enabled)
 
-            -- Si aucune arme n'est sélectionnée, on ne fait rien
-            if not selectedWeapons or #selectedWeapons == 0 then 
-                print("Aucune arme sélectionnée, pas de kick.") 
-                return 
-            end
+    if not enabled then return end
 
-            -- Vérifie si l'item dropé correspond à une des armes sélectionnées
-            for _, weapon in ipairs(selectedWeapons) do
-                print("Vérification de l'arme dans l'inventaire : ", item.Name)  -- Affiche le nom de l'item dans l'inventaire
-                if item.Name == weapon then
-                    -- Kick le joueur si l'arme correspond à celle sélectionnée
-                    print("Le joueur a droppé l'arme sélectionnée : ", weapon)
-                    LocalPlayer:Kick("Vous avez droppé l'arme : " .. weapon)
+    local function checkWeaponDrop(item)
 
-                    -- Envoi du message via webhook
-                    sendWebhook(Options.DropWebhook.Value, {
-                        embeds = {{
-                            title = 'Vous avez droppé une arme que vous avez sélectionnée',
-                            description = string.format("Le joueur %s a été kické pour avoir droppé l'arme %s", LocalPlayer.Name, weapon),
-                            color = 0xFF0000,
-                            fields = {
-                                { name = 'Player', value = string.format("[%s](https://www.roblox.com/users/%s)", LocalPlayer.Name, LocalPlayer.UserId), inline = true },
-                                { name = 'Game', value = string.format("[%s](https://www.roblox.com/games/%d)", MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId), inline = true },
-                                { name = 'Item Stats', value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "](https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")", inline = true }
+        task.wait(0.1) -- Fiabilité
+
+        local selected = Options.WeaponToKick.Value
+        if not selected then return end
+
+        -- Vérifie chaque arme sélectionnée
+        for weapon, isSelected in pairs(selected) do
+            if isSelected and item.Name == weapon then
+
+                print("MATCH trouvé :", weapon)
+
+                -- KICK
+                LocalPlayer:Kick("Vous avez droppé une arme interdite : " .. weapon)
+
+                -- WEBHOOK
+                sendWebhook(Options.DropWebhook.Value, {
+                    embeds = {{
+                        title = "Arme choisi détectée",
+                        description = string.format(
+                            "Le joueur **%s** a été kick pour avoir droppé **%s**.",
+                            LocalPlayer.Name, weapon
+                        ),
+                        color = 0xFF0000,
+                        fields = {
+                            {
+                                name = "Joueur",
+                                value = string.format("[%s](https://www.roblox.com/users/%s)",
+                                LocalPlayer.Name, LocalPlayer.UserId),
+                                inline = true
+                            },
+                            {
+                                name = "Jeu",
+                                value = string.format("[%s](https://www.roblox.com/games/%d)",
+                                MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
+                                inline = true
                             }
-                        }}
-                    }, Toggles.PingInMessage.Value and string.format("<@%s>", Options.PingID.Value) or nil)  -- Si PingInMessage est activé, ajoute le ping
-                end
+                        }
+                    }}
+                },
+                Toggles.PingInMessage.Value and string.format("<@%s>", Options.PingID.Value) or nil
+                )
+
             end
         end
-
-        -- Vérifie l'inventaire lorsqu'un item est ajouté
-        Inventory.ChildAdded:Connect(function(item)
-            checkWeaponDrop(item)  -- Vérifie si l'arme dans l'inventaire est celle sélectionnée dans la liste
-        end)
     end
+
+    -- Connexion à Inventory
+    Inventory.ChildAdded:Connect(checkWeaponDrop)
+
 end)
 
 -- Traitement de la liste des drops
