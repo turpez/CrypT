@@ -2730,7 +2730,7 @@ Drops:AddToggle('EnableWeaponKick', {
                             { name = 'Item Stats', value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "](https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")", inline = true }
                         }
                     }}
-                }, Toggles.PingInMessage.Value)
+                }, Toggles.PingInMessage.Value and "<@" .. Options.PingID.Value .. ">" or nil)
             end
         end
 
