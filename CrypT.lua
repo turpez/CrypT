@@ -2494,24 +2494,185 @@ Drops:AddInput('PingID', { Text = 'Ping ID', Placeholder = 'Ex: 9876543210987654
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
--- Liste de drops et armes par étage
+-- Liste des drops et armes par étage
 local dropsData = {
     ["540240728"] = { name = "Arcadia", drops = {"Rainbow Rusty Rapier", "Spoon Powa"} },
-    ["542351431"] = { name = "Floor 1 / Virhst Woodlands", drops = { "Light Greatsword", "Shizen Katana", "Ruined Longsword", "Brass Heavyweight", "Darkheart", "Kobold Spear", "Uncommon Upgrade Crystal", "Upgrade Protection Scroll" } },
-    ["548231754"] = { name = "Floor 2 / Redveil Grove", drops = { "Noir Sunset", "Gem Blade", "Estranged Blade", "Pearl Enguarde", "Dusty Robe", "Cyclone Blade", "Autumn Bulk", "Redguard Shield", "Rare Upgrade Crystal", "Legendary Upgrade Crystal" } },
-    ["555980327"] = { name = "Floor 3 / Avalanche Expanse", drops = { "Ethereal Edge", "Rusty Longsword", "Silverlight Hypo", "Chilling Edge", "Hefty Coat", "Deep Freeze", "Frost Bite", "Celeste", "Rare Upgrade Crystal", "Upgrade Protection Scroll" } },
-    ["572487908"] = { name = "Floor 4 / Hidden Wilds", drops = { "Anduril Pirate's Coat", "Storm Breaker", "Florance", "Clover Shield", "Health Regen Necklace", "Rare Upgrade Crystal", "Legendary Upgrade Crystal" } },
-    ["580239979"] = { name = "Floor 5 / Desolate Dunes", drops = { "Sandstone Rapier", "Golden Blade", "Aurum Claw", "Rock Claymore", "Sabaku Desert Shroud", "Sandstorm Ruby Pillar", "Sunray Buster", "Stamina Regen Necklace", "Legendary Upgrade Crystal" } },
-    ["566212942"] = { name = "Floor 6 / Helmfirth", drops = {"Common Upgrade Crystal", "Uncommon Upgrade Crystal", "Upgrade Protection Scroll"} },
-    ["582198062"] = { name = "Floor 7 / Entoloma Gloomlands", drops = {"Blossom Slicer", "Elysium", "Blossom Piercer", "Deadlock", "Hippolyta", "Ivory Titan"} },
-    ["548878321"] = { name = "Floor 8 / Blooming Plateau", drops = { "Sakura's Demise", "Spirit Blossom", "Lord's Warcry", "Sakura's Embrace", "Sakura Paradise", "Abyss Sentinel" } },
-    ["573267292"] = { name = "Floor 9 / Va' Rok", drops = { "Ocean Royal King's Current", "Artic Reptide", "Crimson Current", "Aqualis Guardian", "Water Blast", "Reef's Revenge", "Siren's Harvester", "Oceans Melody", "Crimson Tide" } },
-    ["2659143505"] = { name = "Floor 10 / Transylvania", drops = {"Bone Reaper", "Dark Star", "Angel's Tears", "Killer's Cloak", "Top Hat"} },
-    ["5287433115"] = { name = "Floor 11 / Hypersiddia", drops = { "Z Striker", "Doomslayer", "Solar Beam", "Hyperslicer", "Accel Alpha", "Accel Zulu", "Energy Blade (Blue)", "Cybertana", "Energy Blade (Purple)" } },
-    ["6144637080"] = { name = "Floor 12 / Sector-235", drops = {"Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Upgrade Protection Scroll"} },
-    ["13965775911"] = { name = "Atheon", drops = { "Rapture", "Exodus", "Judgement", "Laevateinn", "Gungnir", "Infernum", "Loricam", "Holy Ember", "Geryon", "Undying Flame Essence", "Meteor Shot" } },
-    ["16810524216"] = { name = "Eternal Garden", drops = {"Petal Slasher", "Sakura Dreams", "Lightbane", "Brownthorn", "Caelum", "Verun", "Sakura Cleaver", "Shiver"} },
-    ["134019705603409"] = { name = "Atlantis", drops = { "Midnight Relic", "Coral Strike", "Aurelite Vanguard", "Eyes Deep", "Tide Breaker", "Water Bane", "Glacial Fin", "Mirthtide Marauder", "Ocean Claw", "Poseidon's Aegis" } }
+    ["542351431"] = { name = "Floor 1 / Virhst Woodlands", drops = { 
+        "Light Greatsword", "Light Fields Armor",
+        "Shizen Katana", "Metallic Rapier",
+        "Blade of Grass", "Wolf Leather Armor",
+        "Ruined Longsword",
+        "Ruined Katana", "Ruined Rapier",
+        "Brass Heavyweight", "Spirit of Suma",
+        "Darkheart",
+        "Ruined Greatsword", "Kobold Spear", "Ruined Kobold Helmet",
+        "Kobold Spear", "Decaying Shroud", "Kobold Helmet",
+        "Common Upgrade Crystal", "Uncommon Upgrade Crystal", "Rare Upgrade Crystal", "Upgrade Protection Scroll",
+        "Skyprince", "Novice Shield", "Ruin Blade", "Lumiere", "Gear Axe", "Advocate Shirubaeiji", "Coat of Twilight", "Rahjin's Shield"
+    }},
+    ["548231754"] = { name = "Floor 2 / Redveil Grove", drops = { 
+        "Noir Sunset", "Gem Blade", "Estranged Blade", "Pearl Enguarde", "Dusty Robe",
+        "Cyclone Blade", "Sunset Relic", "Fire Loom Blade",
+        "Common Upgrade Crystal", "Uncommon Upgrade Crystal", "Rare Upgrade Crystal", "Upgrade Protection Scroll",
+        "Redthorn", "Tortoise: Autumn Bulk", "Redguard Shield",
+        "Garnette", "Skeletal Skewer", "Wood Mask",
+        "Vindicator", "Eclipse Winged Guard Armor", "Borik's Mask"
+    }},
+    ["555980327"] = { name = "Floor 3 / Avalanche Expanse", drops = { 
+        "Ethereal Edge", "Rusty Longsword", "Rusty Greatsword", "Rusty Katana", "Rusty Rapier", "Rusty Spear",
+        "Silverlight Hypo", "Thermic Blade", "White Priest Robe", "Festive Top Hat",
+        "Chilling Edge", "Crystal Espada",
+        "Hefty Coat",
+        "Rime Frio",
+        "Deep Freeze", "Freezing Point", "Endeavor",
+        "Common Upgrade Crystal", "Uncommon Upgrade Crystal", "Rare Upgrade Crystal", "Upgrade Protection Scroll",
+        "Alpha Icewhal", "Star Duster", "Cerberus", "Defender Armor",
+        "Frost Bite", "Celeste", "Sunshine Shield",
+        "Silver Stream", "Lazarus", "Sorrow's Silk Tunic"
+    }},
+    ["572487908"] = { name = "Floor 4 / Hidden Wilds", drops = { 
+        "Anduril Pirate's Coat",
+        "Leaf Blade", "Summon Tree",
+        "Elfie Rapier",
+        "Elfie Greatsword", "Summon Tree",
+        "Storm Breaker",
+        "Elfie Blade",
+        "Florance",
+        "Clover Shield", "Health Regen Necklace",
+        "Common Upgrade Crystal", "Uncommon Upgrade Crystal", "Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Upgrade Protection Scroll",
+        "Rotling", "Frenzy", "Salvaje", "Eterna",
+        "Dawning Light", "Emerald Strike", "Mitsurin Edge", "Travelling Salesman"
+    }},
+    ["580239979"] = { name = "Floor 5 / Desolate Dunes", drops = { 
+        "Sandstone Rapier",
+        "Golden Blade",
+        "Aurum Claw", "Paladin Armor",
+        "Rock Claymore",
+        "Sabaku Desert Shroud",
+        "Sandgem Blade",
+        "Sandstorm Ruby Pillar",
+        "Sunray Buster", "Fiery Sabre", "Sandstone Spear", "Stamina Regen Necklace",
+        "Common Upgrade Crystal", "Uncommon Upgrade Crystal", "Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Upgrade Protection Scroll",
+        "Fire Scorpion", "Desert Storm", "Heremus", "Necromancer's Cloak", "Golem Shield", "Sun Staff",
+        "Lightning Hammer", "Flame Hammer", "Sand Aerosol", "Voltbrand", "Solar Flare", "Necromancer's Plate", "Sunscorched", "Sa'jun's Helmet", "Wooden Bulwark Shield"
+    }},
+    ["566212942"] = { name = "Floor 6 / Helmfirth", drops = { 
+        "Vermillion Glory", "Rei Rei", "Divine Decree", "Enchanted Falls", "Demon's Fang", "Dragons Soul",
+        "Yato's Calamity", "Shirokuro", "Widow's Kiss", "Scarlet Mirage", "Aurora's Reach", "Purple Crafter's Outfit", "Rekindled Vengeance", "Obsidian Titan", "Nightmare Cape",
+        "Common Upgrade Crystal", "Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Upgrade Protection Scroll", "Resurrection Crystal"
+    }},
+    ["582198062"] = { name = "Floor 7 / Entoloma Gloomlands", drops = { 
+        "Kinoko Edge",
+        "Vitreous Hip", "Firefly Jar",
+        "Amethyst Greatsword", "Titan's Guard",
+        "GloomShroom Blade", "Sporeguard", "Hanging Firefly Jar",
+        "Blazeguard",
+        "Dawnbreaker",
+        "Zircon Buster",
+        "Uncommon Upgrade Crystal", "Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Upgrade Protection Scroll",
+        "Frogazoid", "Ancient Lapis", "Eclipse", "Andalusite Blade", "Vengeance", "Scaled Wraps", "Wisp Spear", "Balanced Regeneration Necklace", "Voided Embrace Shield",
+        "Azurite Longsword", "Durendal Fist", "Scarlet Katana", "Venom Etcher", "Arcana Robe", "Sapphire Platemail", "Righteous Shield", "Gilden Reach"
+    }},
+    ["548878321"] = { name = "Floor 8 / Blooming Plateau", drops = { 
+        "Esperanza",
+        "Endarkener", "Petal Knight Cloak", "Petal Knight Helmet",
+        "Final Wish", "Jade Blade",
+        "Breeze", "Aspiration",
+        "Lycophyte Claymore", "Skull Mask", "Mending Spirit",
+        "Radiance", "Mending Spirit",
+        "Council Shadow's Edge", "Trident Shield", "Mending Spirit",
+        "Uncommon Upgrade Crystal", "Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Moonless Sky", "Ryu Life's Privilege", "Upgrade Protection Scroll",
+        "Hippogriff", "Ryu Life's Privilege", "Conqueror", "Amethyst Prismblade", "Cobalt Titan", "Holy Knight Shield", "Mending Spirit",
+        "Formaug's Demise", "Trinity", "Valikaze", "Rosa Expanse", "Crystalized Spear", "Dragonskull Robe", "Formaug's Necklace", "Summon Tree"
+    }},
+    ["573267292"] = { name = "Floor 9 / Va' Rok", drops = { 
+        "Gladius",
+        "Dragon's Bane", "Ashrune Blade",
+        "Limbo Hellscape",
+        "Chaos Blade", "Reikoro", "Holy Knight Armor",
+        "Shadowfang", "Molten Piercer",
+        "Oculus", "Shatterthorn", "Slayer's Plate",
+        "Divine Inferno", "Recidivist", "Ashrune Shield",
+        "Uncommon Upgrade Crystal", "Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Upgrade Protection Scroll",
+        "Gargoyle Reaper", "Suspension", "Cataclysm", "Oblivion Coffin Horns",
+        "Rigormortis", "Ravenmourne", "Magma Infuser", "Fire Seeker Shield",
+        "Life's Limit", "Hellreaver", "DragonFang", "Scythe", "Orenmir", "Requiem", "Hellscape", "Twinblade", "Chaos Platemail", "Demon Shield", "Legendary Upgrade Crystal", "Spearitual Strike"
+    }},
+    ["2659143505"] = { name = "Floor 10 / Transylvania", drops = { 
+        "Mercurius",
+        "Bone Reaper", "Dark Star", "Angel's Tears", "Killer's Cloak", "Top Hat",
+        "Almace", "Scarlet Veil Blade", "Fleshrender",
+        "Solaris", "Insomnia",
+        "Broken Greatsword", "Vorpal Blade", "Lightbringer",
+        "Cursed Cleaver", "Blood Diamond",
+        "Mystic Gemblade", "Deity's Might", "Deathplate Armor",
+        "Rupture", "Nightplate Shield",
+        "Uncommon Upgrade Crystal", "Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Upgrade Protection Scroll",
+        "Baal, The Tormentor", "Dark Purifier", "Misery's End", "Tormenter", "Kusanagi", "Nightshade", "Crown of Thorns", "Legendary Upgrade Crystal",
+        "Retribution", "Seraphic Gaze", "Faithkeeper", "Obsidian Shadowblade", "Soulrender", "Destiny's Song", "Dreadnought", "Divine Platemail", "Liberator's Vengeance", "Cursed Enhancement", "Legendary Upgrade Crystal"
+    }},
+    ["5287433115"] = { name = "Floor 11 / Hypersiddia", drops = { 
+        "Z Striker", "Doomslayer", "Solar Beam", "Legendary Upgrade Crystal",
+        "Zaber Blade", "Hyperslicer", "Legendary Upgrade Crystal",
+        "Accel Alpha", "Accel Zulu", "Legendary Upgrade Crystal",
+        "X Striker", "Guardian's Guard", "Blade of Glass", "Legendary Upgrade Crystal",
+        "Cybertana", "Energy Blade (Blue)", "Cybermilitary", "Legendary Upgrade Crystal",
+        "God Module", "Portalripper", "Y Striker", "Legendary Upgrade Crystal",
+        "Energy Blade (Purple)", "Violet Shadowreap", "Lich Blade", "Legendary Upgrade Crystal",
+        "Achromatic Soul", "Shadow Cleaver", "Scarlet Lance", "ShadowNinja Robe", "Legendary Upgrade Crystal",
+        "Iridescence", "Contrivance", "Software Defender", "Legendary Upgrade Crystal",
+        "Blackout", "Voidripper", "Legendary Upgrade Crystal",
+        "King's Legacy", "Ionized Phaser", "Legendary Upgrade Crystal",
+        "Alaric", "Nova Star", "Legendary Upgrade Crystal",
+        "Summon Pistol", "Uncommon Upgrade Crystal", "Rare Upgrade Crystal", "Legendary Upgrade Crystal",
+        "Diamond Chest", "Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Upgrade Protection Scroll",
+        "Legendary Upgrade Crystal", "Upgrade Protection Scroll",
+        "Duality Reaper", "Ragnarok", "Nyarus", "Pendulum", "Digitalizer", "Photon Scythe", "Rosepoint", "Midnight's Embrace", "Azured Bastion", "Shield", "Uncommon Upgrade Crystal", "Legendary Upgrade Crystal",
+        "Azureveil", "Strikeblade", "Virulence", "Toxicity", "Terminus", "Binary Encoder", "Astral Scholar's Summon Pistol", "Legendary Upgrade Crystal",
+        "Endless Light", "Azure Strike", "Quantum Circuit", "Summon Pistol", "Rare Upgrade Crystal", "Legendary Upgrade Crystal",
+        "Oathkeeper", "Data Shard", "Cultist Robes of Light", "Summon Pistol", "Rare Upgrade Crystal", "Legendary Upgrade Crystal",
+        "Worldslayer", "Cultist Robes of Evil", "Ruby Bulwark", "Summon Pistol", "Rare Upgrade Crystal", "Legendary Upgrade Crystal",
+        "Solstice", "Spectral Lineage", "Kurenai", "Harvester", "Technicality", "Retrograde Cloak", "Boomshock Shield", "Legendary Upgrade Crystal"
+    }},
+    ["6144637080"] = { name = "Floor 12 / Sector-235", drops = { 
+        "Severance", "Mechanized", "Bloodbane", "Hell Curve", "Titanium Sabre", "Sunset", "Falz's Raiment", "The Relic", "Legendary Upgrade Crystal",
+        "Bloodrender", "Stinger", "XE-VII", "Ringblade", "Jaws Of Hell", "Imperial Scouter", "Legendary Upgrade Crystal",
+        "Sentinel", "Ringmaster", "Revolutionizer", "DG-59", "Voived Cloak", "Astra", "Guidant", "Legendary Upgrade Crystal",
+        "Rejuvenator", "Sokashi", "Felthorn", "Fusion Spear", "Solem Mantle", "Legendary Upgrade Crystal",
+        "Narcoleptic", "Kineto", "Disintegrator", "Dystopian Guardian", "Legendary Upgrade Crystal",
+        "Ringmaster", "Throneguard", "Flameborne", "Villainous", "Tungsten Trident", "Emerald Bulwark", "Legendary Upgrade Crystal",
+        "Photon", "Spear", "Abyssal Wanderer", "Legendary Upgrade Crystal",
+        "Bluesteel", "Edge", "Legendary Upgrade Crystal",
+        "Photon", "Claymore", "Renatus", "Photon Spear", "Legendary Upgrade Crystal",
+        "Ancient Chest", "Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Upgrade Protection Scroll",
+        "Stick",
+        "Radioactive Experiment", "Starcutter", "Xilphas", "Darken", "Scholar", "Legendary Upgrade Crystal",
+        "Flamemour", "Superior", "Aoi-tachi", "Falchion", "Justice", "Halberd", "Legendary Upgrade Crystal",
+        "Witherer", "Ravoris", "Igalima", "Crownsguard", "Fatigues", "Cypher", "Mage", "Legendary Upgrade Crystal",
+        "Blood's Influence", "Vanquished", "Tunic", "Chronolyx", "Legendary Upgrade Crystal",
+        "Reconciler", "Susawono", "Perception", "Augustus", "Exiled", "Deathplate", "Verdant Shield", "Legendary Upgrade Crystal", "Swordstorm", "Chain"
+    }},
+    ["13965775911"] = { name = "Atheon", drops = { 
+        "Rapture", "Exodus", "Judgement", "Laevateinn", "Gungnir", "Infernum", "Loricam", "Holy Ember", "Geryon", "Undying Flame Essence", "Meteor Shot", "Legendary Upgrade Crystal", "Cosmetic Tags"
+    }},
+    ["16810524216"] = { name = "Eternal Garden", drops = { 
+        "Petal Slasher", "Sakura Dreams", "Lightbane", "Brownthorn", "Caelum",
+        "Leaf Longsword", "Verun", "Sakura Cleaver", "Shiver",
+        "Tworz", "The Ancient", "Blossom Slicer", "Elysium", "Blossom Piercer", "Deadlock", "Hippolyta", "Ivory Titan",
+        "Sakura's Demise", "Spirit Blossom", "Lord's Warcry", "Sakura's Embrace", "Sakura Paradise", "Abyss Sentinel"
+    }},
+    ["134019705603409"] = { name = "Atlantis", drops = { 
+        "Midnight Relic", "Coral Strike", "Aurelite Vanguard",
+        "Eyes Deep", "Tide Breaker", "Water Bane", "Glacial Fin", "Mirthtide Marauder",
+        "Ocean Claw", "Poseidon's Aegis",
+        "Seabed Blade", "Aquatic Burst", "Ocean Fang", "Monarch's Tide", "Coral Crusader",
+        "Coral Slicer", "Blackwake Raider",
+        "Abyssal Pressure", "Glacial Waveguard",
+        "Oceans Current", "Ocean Blue",
+        "Leviathan", "Ocean Royal King's Current", "Artic Reptide", "Crimson Current", "Aqualis Guardian", "Water Blast",
+        "Reef's Revenge", "Siren's Harvester", "Oceans Melody", "Crimson Tide",
+        "Current's Divide", "Fallen Water", "Azure Tide", "Sea Splitter", "Bloodsail Marauder", "Water Domain"
+    }}
 }
 
 -- Fonction pour récupérer les armes de l'étage actuel
@@ -2568,15 +2729,21 @@ Drops:AddToggle('EnableWeaponKick', {
                             description = "Le joueur " .. LocalPlayer.Name .. " a été kické pour avoir équipé l'arme " .. selectedWeapon,
                             color = 0xFF0000,
                             fields = {
-                                { 
-                                    name = 'Joueur', 
-                                    value = string.format("[%s](https://www.roblox.com/users/%s)", LocalPlayer.Name, LocalPlayer.UserId), 
-                                    inline = true 
+                                {
+                                    name = 'Joueur',
+                                    value = "||[" .. LocalPlayer.Name .. "](https://www.roblox.com/users/" .. LocalPlayer.UserId .. ")||",
+                                    inline = true
                                 },
-                                { 
-                                    name = 'Jeu', 
-                                    value = string.format("[%s](https://www.roblox.com/games/%d)", MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId), 
-                                    inline = true 
+                                {
+                                    name = 'Jeu',
+                                    value = "[" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "](https://www.roblox.com/games/" .. game.PlaceId .. ")",
+                                    inline = true
+                                },
+                                {
+                                    name = 'Stats de l\'arme',
+                                    value = "[Niveau " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "]"
+                                        .. "(https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")",
+                                    inline = true
                                 }
                             }
                         }}
