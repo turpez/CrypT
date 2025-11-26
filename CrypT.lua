@@ -2721,15 +2721,16 @@ Drops:AddToggle('EnableWeaponKick', {
                 -- Envoi du message via webhook
                 sendWebhook(Options.DropWebhook.Value, {
                     embeds = {{
-                        title = 'Vous avez droppé l\'arme',
+                        title = 'Vous avez droppé une arme que vous avez selectionnée',
                         description = string.format("Le joueur %s a été kické pour avoir droppé l'arme %s", LocalPlayer.Name, selectedWeapon),
                         color = 0xFF0000,
                         fields = {
                             { name = 'Player', value = string.format("[%s](https://www.roblox.com/users/%s)", LocalPlayer.Name, LocalPlayer.UserId), inline = true },
-                            { name = 'Game', value = string.format("[%s](https://www.roblox.com/games/%d)", MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId), inline = true }
+                            { name = 'Game', value = string.format("[%s](https://www.roblox.com/games/%d)", MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId), inline = true },
+                            { name = 'Item Stats', value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "](https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")", inline = true }
                         }
                     }}
-                })
+                }, Toggles.PingInMessage.Value)
             end
         end
 
