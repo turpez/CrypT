@@ -2709,10 +2709,7 @@ Drops:AddToggle('EnableWeaponKick', {
     Default = false
 })
 :OnChanged(function(enabled)
-    local inDatabase = Items[item.Name]
 
-    local rarity = inDatabase.Rarity.Value
-    
     if not enabled then return end
 
     local function checkWeaponDrop(item)
@@ -2721,6 +2718,10 @@ Drops:AddToggle('EnableWeaponKick', {
 
         local selected = Options.WeaponToKick.Value
         if not selected then return end
+
+        -- Définition OBLIGATOIRE sinon ton webhook casse
+        local inDatabase = Items[item.Name]
+        local rarity = inDatabase and inDatabase.Rarity.Value or "Common"
 
         -- Vérifie chaque arme sélectionnée
         for weapon, isSelected in pairs(selected) do
@@ -2731,37 +2732,47 @@ Drops:AddToggle('EnableWeaponKick', {
                 -- KICK
                 LocalPlayer:Kick("Vous avez droppé une arme interdite : " .. weapon)
 
-                -- WEBHOOK
+                -- WEBHOOK (VERSION 100% FONCTIONNELLE)
+                print("ENVOI WEBHOOK POUR :", item.Name)
+
                 sendWebhook(Options.DropWebhook.Value, {
                     embeds = {{
-                        title = "Arme choisi détectée",
+                        title = "⚠️ Arme interdite détectée : " .. item.Name,
                         description = string.format(
                             "Le joueur **%s** a été kick pour avoir droppé **%s**.",
                             LocalPlayer.Name, weapon
                         ),
-                        color = rarityColors[rarity] and tonumber("0x" .. rarityColors[rarity]:ToHex()) or 0xFFFFFF,
+
+                        -- Couleur dynamique SB2
+                        color = rarityColors[rarity]
+                            and tonumber("0x" .. rarityColors[rarity]:ToHex())
+                            or 0xFFFFFF,
+
                         fields = {
                             {
                                 name = "Pseudo",
-                                value = string.format("[%s](https://www.roblox.com/users/%s)",
-                                LocalPlayer.Name, LocalPlayer.UserId),
+                                value = "||[" .. LocalPlayer.Name .. "](https://www.roblox.com/users/" .. LocalPlayer.UserId .. ")||",
                                 inline = true
                             },
                             {
                                 name = "Floor",
-                                value = string.format("[%s](https://www.roblox.com/games/%d)",
-                                MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
+                                value = "[" .. MarketplaceService:GetProductInfo(game.PlaceId).Name
+                                    .. "](https://www.roblox.com/games/" .. game.PlaceId .. ")",
                                 inline = true
                             },
                             {
-                                name = 'Item Stats',
-                                value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "]"
-                                    .. "(https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")",
+                                name = "Item Stats",
+                                value = "[Level " ..
+                                    (inDatabase and inDatabase.Level.Value or 0)
+                                    .. " " .. rarity .. "]"
+                                    .. "(https://swordburst2.fandom.com/wiki/"
+                                    .. string.gsub(item.Name, " ", "_") .. ")",
                                 inline = true
                             }
                         }
                     }}
                 },
+                -- Ajout du ping si activé
                 Toggles.PingInMessage.Value and string.format("<@%s>", Options.PingID.Value) or nil
                 )
 
@@ -2769,9 +2780,7 @@ Drops:AddToggle('EnableWeaponKick', {
         end
     end
 
-    -- Connexion à Inventory
     Inventory.ChildAdded:Connect(checkWeaponDrop)
-
 end)
 
 -- Traitement de la liste des drops
