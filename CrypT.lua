@@ -2691,7 +2691,7 @@ local function getWeaponsForCurrentFloor()
     end
 end
 
--- Dropdown MULTI correct
+-- Dropdown MULTI correct !!
 Drops:AddDropdown('WeaponToKick', {
     Text = "Sélectionner les armes à détecter",
     Values = getWeaponsForCurrentFloor(),
