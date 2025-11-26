@@ -2730,23 +2730,23 @@ Drops:AddToggle('EnableWeaponKick', {
                 -- WEBHOOK
                 sendWebhook(Options.DropWebhook.Value, {
                     embeds = {{
-                        title = "Arme choisi détectée",
-                        description = string.format(
-                            "Le joueur **%s** a été kick pour avoir droppé **%s**.",
-                            LocalPlayer.Name, weapon
-                        ),
-                        color = 0xFF0000,
+                        title = "Arme choisi détectée " .. item.Name .. "!",
+                        color = tonumber('0x' .. rarityColors[rarity]:ToHex()),
                         fields = {
                             {
-                                name = "Joueur",
-                                value = string.format("[%s](https://www.roblox.com/users/%s)",
-                                LocalPlayer.Name, LocalPlayer.UserId),
+                                name = 'Pseudo',
+                                value = "||[" .. LocalPlayer.Name .. "](https://www.roblox.com/users/" .. LocalPlayer.UserId .. ")||",
                                 inline = true
                             },
                             {
-                                name = "Jeu",
-                                value = string.format("[%s](https://www.roblox.com/games/%d)",
-                                MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
+                                name = 'Floor',
+                                value = "[" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "](https://www.roblox.com/games/" .. game.PlaceId .. ")",
+                                inline = true
+                            },
+                            {
+                                name = 'Item Stats',
+                                value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "]"
+                                    .. "(https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")",
                                 inline = true
                             }
                         }
