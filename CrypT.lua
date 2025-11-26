@@ -2744,7 +2744,7 @@ Drops:AddToggle('EnableWeaponKick', {
                                 inline = true
                             },
                             {
-                                name = "Floor",
+                                name = "Jeu",
                                 value = string.format("[%s](https://www.roblox.com/games/%d)",
                                 MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
                                 inline = true
