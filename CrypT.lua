@@ -2675,7 +2675,6 @@ local dropsData = {
     }}
 }
 
-
 -- Fonction pour récupérer les armes de l'étage actuel
 local function getCurrentFloorID()
     return tostring(game.PlaceId) -- Utilisation du PlaceId pour obtenir l'étage actuel
@@ -2719,10 +2718,6 @@ Drops:AddToggle('EnableWeaponKick', {
         local selected = Options.WeaponToKick.Value
         if not selected then return end
 
-        -- Définition OBLIGATOIRE sinon ton webhook casse
-        local inDatabase = Items[item.Name]
-        local rarity = inDatabase and inDatabase.Rarity.Value or "Common"
-
         -- Vérifie chaque arme sélectionnée
         for weapon, isSelected in pairs(selected) do
             if isSelected and item.Name == weapon then
@@ -2732,47 +2727,37 @@ Drops:AddToggle('EnableWeaponKick', {
                 -- KICK
                 LocalPlayer:Kick("Vous avez droppé une arme interdite : " .. weapon)
 
-                -- WEBHOOK (VERSION 100% FONCTIONNELLE)
-                print("ENVOI WEBHOOK POUR :", item.Name)
-
+                -- WEBHOOK
                 sendWebhook(Options.DropWebhook.Value, {
                     embeds = {{
-                        title = "⚠️ Arme interdite détectée : " .. item.Name,
+                        title = "Arme choisi détectée",
                         description = string.format(
                             "Le joueur **%s** a été kick pour avoir droppé **%s**.",
                             LocalPlayer.Name, weapon
                         ),
-
-                        -- Couleur dynamique SB2
-                        color = rarityColors[rarity]
-                            and tonumber("0x" .. rarityColors[rarity]:ToHex())
-                            or 0xFFFFFF,
-
+                        color = 0xFF0000,
                         fields = {
                             {
                                 name = "Pseudo",
-                                value = "||[" .. LocalPlayer.Name .. "](https://www.roblox.com/users/" .. LocalPlayer.UserId .. ")||",
+                                value = string.format("[%s](https://www.roblox.com/users/%s)",
+                                LocalPlayer.Name, LocalPlayer.UserId),
                                 inline = true
                             },
                             {
                                 name = "Floor",
-                                value = "[" .. MarketplaceService:GetProductInfo(game.PlaceId).Name
-                                    .. "](https://www.roblox.com/games/" .. game.PlaceId .. ")",
+                                value = string.format("[%s](https://www.roblox.com/games/%d)",
+                                MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
                                 inline = true
                             },
                             {
-                                name = "Item Stats",
-                                value = "[Level " ..
-                                    (inDatabase and inDatabase.Level.Value or 0)
-                                    .. " " .. rarity .. "]"
-                                    .. "(https://swordburst2.fandom.com/wiki/"
-                                    .. string.gsub(item.Name, " ", "_") .. ")",
+                                name = 'Item Stats',
+                                value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "]"
+                                    .. "(https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")",
                                 inline = true
                             }
                         }
                     }}
                 },
-                -- Ajout du ping si activé
                 Toggles.PingInMessage.Value and string.format("<@%s>", Options.PingID.Value) or nil
                 )
 
@@ -2780,7 +2765,9 @@ Drops:AddToggle('EnableWeaponKick', {
         end
     end
 
+    -- Connexion à Inventory
     Inventory.ChildAdded:Connect(checkWeaponDrop)
+
 end)
 
 -- Traitement de la liste des drops
