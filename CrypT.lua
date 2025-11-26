@@ -2703,6 +2703,18 @@ Drops:AddDropdown('WeaponToKick', {
     Options.WeaponToKick:SetValue(selected)
 end)
 
+-- Dropdown MULTI correct
+Drops:AddDropdown('WeaponToKick', {
+    Text = "Sélectionner les armes à détecter",
+    Values = getWeaponsForCurrentFloor(),
+    Multi = true,
+    AllowNull = true
+})
+:OnChanged(function(selected)
+    print("Sélection :", selected)
+    Options.WeaponToKick:SetValue(selected)
+end)
+
 Drops:AddToggle('EnableWeaponKick', {
     Text = "Activer le kick pour les armes sélectionnées",
     Default = false
@@ -2713,93 +2725,55 @@ Drops:AddToggle('EnableWeaponKick', {
 
     local function checkWeaponDrop(item)
 
-        -- Laisse Roblox charger l'item (IMPORTANT)
-        task.wait(0.1)
+        task.wait(0.1) -- Fiabilité
 
-        local selectedWeapons = Options.WeaponToKick.Value
-        if not selectedWeapons then return end
+        local selected = Options.WeaponToKick.Value
+        if not selected then return end
 
         -- Vérifie chaque arme sélectionnée
-        for weapon, isSelected in pairs(selectedWeapons) do
+        for weapon, isSelected in pairs(selected) do
             if isSelected and item.Name == weapon then
 
                 print("MATCH trouvé :", weapon)
 
-                --------------------------------------------------------------------
-                -- 🔥 Récupération SÉCURISÉE des infos item (AUCUNE ERREUR POSSIBLE)
-                --------------------------------------------------------------------
+                -- KICK
+                LocalPlayer:Kick("Vous avez droppé une arme interdite : " .. weapon)
 
-                local inDatabase = Items[item.Name] or {}
-                local rarityObj = inDatabase.Rarity
-                local rarity = rarityObj and rarityObj.Value or "Common"
-
-                local levelObj = inDatabase:FindFirstChild("Level")
-                local level = levelObj and levelObj.Value or 0
-
-                local rarityColor = rarityColors[rarity]
-                local finalColor = rarityColor and tonumber("0x" .. rarityColor:ToHex()) or 0xFFFFFF
-
-                local wikiName = string.gsub(item.Name, " ", "_")
-                local wikiURL = "https://swordburst2.fandom.com/wiki/" .. wikiName
-
-                --------------------------------------------------------------------
-                -- 🔥 ENVOI DU WEBHOOK (100% FIABLE)
-                --------------------------------------------------------------------
-
-                sendWebhook(
-                    Options.DropWebhook.Value,
-                    {
-                        embeds = {{
-
-                            title = "🚫 Arme interdite détectée",
-                            description = string.format(
-                                "Le joueur **%s** a été kick pour avoir droppé **%s**.",
-                                LocalPlayer.Name, weapon
-                            ),
-                            color = finalColor,
-
-                            fields = {
-                                {
-                                    name = "👤 Joueur",
-                                    value = string.format("[%s](https://www.roblox.com/users/%s)",
-                                        LocalPlayer.Name, LocalPlayer.UserId),
-                                    inline = true
-                                },
-                                {
-                                    name = "🎮 Jeu",
-                                    value = string.format("[%s](https://www.roblox.com/games/%d)",
-                                        MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
-                                    inline = true
-                                },
-                                {
-                                    name = "📊 Stats de l'item",
-                                    value = string.format("[Level %d %s](%s)", level, rarity, wikiURL),
-                                    inline = true
-                                }
+                -- WEBHOOK
+                sendWebhook(Options.DropWebhook.Value, {
+                    embeds = {{
+                        title = "🚫 Arme interdite détectée",
+                        description = string.format(
+                            "Le joueur **%s** a été kick pour avoir droppé **%s**.",
+                            LocalPlayer.Name, weapon
+                        ),
+                        color = 0xFF0000,
+                        fields = {
+                            {
+                                name = "Joueur",
+                                value = string.format("[%s](https://www.roblox.com/users/%s)",
+                                LocalPlayer.Name, LocalPlayer.UserId),
+                                inline = true
+                            },
+                            {
+                                name = "Jeu",
+                                value = string.format("[%s](https://www.roblox.com/games/%d)",
+                                MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
+                                inline = true
                             }
-                        }}
-                    },
-
-                    ----------------------------------------------------------------
-                    -- 🔥 PING Discord FIABLE
-                    -- Envoie "<@ID>" seulement si cochée
-                    ----------------------------------------------------------------
-                    (Toggles.PingInMessage.Value and Options.PingID.Value ~= "")
-                        and ("<@" .. Options.PingID.Value .. ">")
-                        or nil
+                        }
+                    }}
+                },
+                Toggles.PingInMessage.Value and string.format("<@%s>", Options.PingID.Value) or nil
                 )
 
-                --------------------------------------------------------------------
-                -- 🔥 KICK APRÈS LE WEBHOOK (pour éviter qu'il casse l'exécution)
-                --------------------------------------------------------------------
-                task.wait(0.2)
-                LocalPlayer:Kick("Vous avez droppé une arme interdite : " .. weapon)
             end
         end
     end
 
-    -- Détection des nouveaux items dans l'inventaire
+    -- Connexion à Inventory
     Inventory.ChildAdded:Connect(checkWeaponDrop)
+
 end)
 
 -- Traitement de la liste des drops
