@@ -2695,11 +2695,10 @@ end
 Drops:AddDropdown('WeaponToKick', {
     Text = 'Sélectionner l\'arme pour kick au drop',
     Values = getWeaponsForCurrentFloor(),  -- Affiche les armes de l'étage actuel
-    Multi = true,  -- Permet de sélectionner plusieurs armes
     AllowNull = true
-}):OnChanged(function(selectedWeapons)
+}):OnChanged(function(selectedWeapon)
     -- Sauvegarde l'arme choisie pour le kick
-    Options.WeaponToKick:SetValue(selectedWeapons)
+    Options.WeaponToKick:SetValue(selectedWeapon)
 end)
 
 Drops:AddToggle('EnableWeaponKick', {
@@ -2743,7 +2742,6 @@ Drops:AddToggle('EnableWeaponKick', {
         end)
     end
 end)
-
 
 -- Traitement de la liste des drops
 local dropList = {}
