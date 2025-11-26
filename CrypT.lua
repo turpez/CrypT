@@ -2738,7 +2738,7 @@ Drops:AddToggle('EnableWeaponKick', {
                         color = 0xFF0000,
                         fields = {
                             {
-                                name = "Pseudo",
+                                name = "Joueur",
                                 value = string.format("[%s](https://www.roblox.com/users/%s)",
                                 LocalPlayer.Name, LocalPlayer.UserId),
                                 inline = true
@@ -2747,12 +2747,6 @@ Drops:AddToggle('EnableWeaponKick', {
                                 name = "Floor",
                                 value = string.format("[%s](https://www.roblox.com/games/%d)",
                                 MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
-                                inline = true
-                            },
-                            {
-                                name = 'Item Stats',
-                                value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "]"
-                                    .. "(https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")",
                                 inline = true
                             }
                         }
