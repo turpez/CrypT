@@ -2483,128 +2483,50 @@ local Drops = Misc:AddLeftGroupbox('Drops')
 local Rarities = { 'Common', 'Uncommon', 'Rare', 'Legendary', 'Tribute' }
 
 Drops:AddDropdown('AutoDismantle', { Text = 'Auto dismantle', Values = Rarities, Multi = true, AllowNull = true })
-
 Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://discord.com/api/webhooks/' })
-:OnChanged(sendTestMessage)
+    :OnChanged(sendTestMessage)
 
-Drops:AddInput('PingID', {
-    Text = 'Ping ID',
-    Placeholder = 'Ex: 987654321098765432'
-})
-:OnChanged(function(value)
-    PingID = value
-end)
+Drops:AddInput('PingID', { Text = 'Ping ID', Placeholder = 'Ex: 987654321098765432' })
+    :OnChanged(function(value)
+        PingID = value
+    end)
 
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
-
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
 -- Liste de drops et armes par étage
 local dropsData = {
-    ["540240728"] = {
-        name = "Arcadia",
-        drops = {"Rainbow Rusty Rapier", "Spoon Powa"}
-    },
-    ["542351431"] = {
-        name = "Floor 1 / Virhst Woodlands",
-        drops = {
-            "Light Greatsword", "Shizen Katana", "Ruined Longsword", "Brass Heavyweight", 
-            "Darkheart", "Kobold Spear", "Uncommon Upgrade Crystal", "Upgrade Protection Scroll"
-        }
-    },
-    ["548231754"] = {
-        name = "Floor 2 / Redveil Grove",
-        drops = {
-            "Noir Sunset", "Gem Blade", "Estranged Blade", "Pearl Enguarde", "Dusty Robe",
-            "Cyclone Blade", "Autumn Bulk", "Redguard Shield", "Rare Upgrade Crystal", "Legendary Upgrade Crystal"
-        }
-    },
-    ["555980327"] = {
-        name = "Floor 3 / Avalanche Expanse",
-        drops = {
-            "Ethereal Edge", "Rusty Longsword", "Silverlight Hypo", "Chilling Edge", "Hefty Coat",
-            "Deep Freeze", "Frost Bite", "Celeste", "Rare Upgrade Crystal", "Upgrade Protection Scroll"
-        }
-    },
-    ["572487908"] = {
-        name = "Floor 4 / Hidden Wilds",
-        drops = {
-            "Anduril Pirate's Coat", "Storm Breaker", "Florance", "Clover Shield", "Health Regen Necklace",
-            "Rare Upgrade Crystal", "Legendary Upgrade Crystal"
-        }
-    },
-    ["580239979"] = {
-        name = "Floor 5 / Desolate Dunes",
-        drops = {
-            "Sandstone Rapier", "Golden Blade", "Aurum Claw", "Rock Claymore", "Sabaku Desert Shroud",
-            "Sandstorm Ruby Pillar", "Sunray Buster", "Stamina Regen Necklace", "Legendary Upgrade Crystal"
-        }
-    },
-    ["566212942"] = {
-        name = "Floor 6 / Helmfirth",
-        drops = {"Common Upgrade Crystal", "Uncommon Upgrade Crystal", "Upgrade Protection Scroll"}
-    },
-    ["582198062"] = {
-        name = "Floor 7 / Entoloma Gloomlands",
-        drops = {"Blossom Slicer", "Elysium", "Blossom Piercer", "Deadlock", "Hippolyta", "Ivory Titan"}
-    },
-    ["548878321"] = {
-        name = "Floor 8 / Blooming Plateau",
-        drops = {
-            "Sakura's Demise", "Spirit Blossom", "Lord's Warcry", "Sakura's Embrace", "Sakura Paradise", "Abyss Sentinel"
-        }
-    },
-    ["573267292"] = {
-        name = "Floor 9 / Va' Rok",
-        drops = {
-            "Ocean Royal King's Current", "Artic Reptide", "Crimson Current", "Aqualis Guardian", "Water Blast",
-            "Reef's Revenge", "Siren's Harvester", "Oceans Melody", "Crimson Tide"
-        }
-    },
-    ["2659143505"] = {
-        name = "Floor 10 / Transylvania",
-        drops = {"Bone Reaper", "Dark Star", "Angel's Tears", "Killer's Cloak", "Top Hat"}
-    },
-    ["5287433115"] = {
-        name = "Floor 11 / Hypersiddia",
-        drops = {
-            "Z Striker", "Doomslayer", "Solar Beam", "Hyperslicer", "Accel Alpha", "Accel Zulu", 
-            "Energy Blade (Blue)", "Cybertana", "Energy Blade (Purple)"
-        }
-    },
-    ["6144637080"] = {
-        name = "Floor 12 / Sector-235",
-        drops = {"Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Upgrade Protection Scroll"}
-    },
-    ["13965775911"] = {
-        name = "Atheon",
-        drops = {
-            "Rapture", "Exodus", "Judgement", "Laevateinn", "Gungnir", "Infernum", "Loricam", 
-            "Holy Ember", "Geryon", "Undying Flame Essence", "Meteor Shot"
-        }
-    },
-    ["16810524216"] = {
-        name = "Eternal Garden",
-        drops = {"Petal Slasher", "Sakura Dreams", "Lightbane", "Brownthorn", "Caelum", "Verun", "Sakura Cleaver", "Shiver"}
-    },
-    ["134019705603409"] = {
-        name = "Atlantis",
-        drops = {
-            "Midnight Relic", "Coral Strike", "Aurelite Vanguard", "Eyes Deep", "Tide Breaker", "Water Bane",
-            "Glacial Fin", "Mirthtide Marauder", "Ocean Claw", "Poseidon's Aegis"
-        }
-    }
+    ["540240728"] = { name = "Arcadia", drops = {"Rainbow Rusty Rapier", "Spoon Powa"} },
+    ["542351431"] = { name = "Floor 1 / Virhst Woodlands", drops = { "Light Greatsword", "Shizen Katana", "Ruined Longsword", "Brass Heavyweight", "Darkheart", "Kobold Spear", "Uncommon Upgrade Crystal", "Upgrade Protection Scroll" } },
+    ["548231754"] = { name = "Floor 2 / Redveil Grove", drops = { "Noir Sunset", "Gem Blade", "Estranged Blade", "Pearl Enguarde", "Dusty Robe", "Cyclone Blade", "Autumn Bulk", "Redguard Shield", "Rare Upgrade Crystal", "Legendary Upgrade Crystal" } },
+    ["555980327"] = { name = "Floor 3 / Avalanche Expanse", drops = { "Ethereal Edge", "Rusty Longsword", "Silverlight Hypo", "Chilling Edge", "Hefty Coat", "Deep Freeze", "Frost Bite", "Celeste", "Rare Upgrade Crystal", "Upgrade Protection Scroll" } },
+    ["572487908"] = { name = "Floor 4 / Hidden Wilds", drops = { "Anduril Pirate's Coat", "Storm Breaker", "Florance", "Clover Shield", "Health Regen Necklace", "Rare Upgrade Crystal", "Legendary Upgrade Crystal" } },
+    ["580239979"] = { name = "Floor 5 / Desolate Dunes", drops = { "Sandstone Rapier", "Golden Blade", "Aurum Claw", "Rock Claymore", "Sabaku Desert Shroud", "Sandstorm Ruby Pillar", "Sunray Buster", "Stamina Regen Necklace", "Legendary Upgrade Crystal" } },
+    ["566212942"] = { name = "Floor 6 / Helmfirth", drops = {"Common Upgrade Crystal", "Uncommon Upgrade Crystal", "Upgrade Protection Scroll"} },
+    ["582198062"] = { name = "Floor 7 / Entoloma Gloomlands", drops = {"Blossom Slicer", "Elysium", "Blossom Piercer", "Deadlock", "Hippolyta", "Ivory Titan"} },
+    ["548878321"] = { name = "Floor 8 / Blooming Plateau", drops = { "Sakura's Demise", "Spirit Blossom", "Lord's Warcry", "Sakura's Embrace", "Sakura Paradise", "Abyss Sentinel" } },
+    ["573267292"] = { name = "Floor 9 / Va' Rok", drops = { "Ocean Royal King's Current", "Artic Reptide", "Crimson Current", "Aqualis Guardian", "Water Blast", "Reef's Revenge", "Siren's Harvester", "Oceans Melody", "Crimson Tide" } },
+    ["2659143505"] = { name = "Floor 10 / Transylvania", drops = {"Bone Reaper", "Dark Star", "Angel's Tears", "Killer's Cloak", "Top Hat"} },
+    ["5287433115"] = { name = "Floor 11 / Hypersiddia", drops = { "Z Striker", "Doomslayer", "Solar Beam", "Hyperslicer", "Accel Alpha", "Accel Zulu", "Energy Blade (Blue)", "Cybertana", "Energy Blade (Purple)" } },
+    ["6144637080"] = { name = "Floor 12 / Sector-235", drops = {"Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Upgrade Protection Scroll"} },
+    ["13965775911"] = { name = "Atheon", drops = { "Rapture", "Exodus", "Judgement", "Laevateinn", "Gungnir", "Infernum", "Loricam", "Holy Ember", "Geryon", "Undying Flame Essence", "Meteor Shot" } },
+    ["16810524216"] = { name = "Eternal Garden", drops = {"Petal Slasher", "Sakura Dreams", "Lightbane", "Brownthorn", "Caelum", "Verun", "Sakura Cleaver", "Shiver"} },
+    ["134019705603409"] = { name = "Atlantis", drops = { "Midnight Relic", "Coral Strike", "Aurelite Vanguard", "Eyes Deep", "Tide Breaker", "Water Bane", "Glacial Fin", "Mirthtide Marauder", "Ocean Claw", "Poseidon's Aegis" } }
 }
 
 -- Fonction pour récupérer les armes de l'étage actuel
+local function getCurrentFloorID()
+    return tostring(game.PlaceId) -- Utilisation du PlaceId pour obtenir l'étage actuel
+end
+
 local function getWeaponsForCurrentFloor()
-    local currentFloorID = tostring(getCurrentFloorID()) -- Remplace cette fonction par la logique exacte de récupération de l'étage
+    local currentFloorID = getCurrentFloorID()  -- Récupérer l'ID de l'étage
     local currentFloor = dropsData[currentFloorID]
     
     if currentFloor then
         return currentFloor.drops
     else
-        return {}
+        return {}  -- Retourner une liste vide si l'étage n'est pas trouvé
     end
 end
 
@@ -2643,11 +2565,11 @@ Drops:AddToggle('EnableWeaponKick', {
                     sendWebhook(Options.DropWebhook.Value, {
                         embeds = {{
                             title = 'Weapon Kick!',
-                            description = `Player {LocalPlayer.Name} was kicked for equipping {selectedWeapon}`,
+                            description = "Player " .. LocalPlayer.Name .. " was kicked for equipping " .. selectedWeapon,
                             color = 0xFF0000,
                             fields = {
-                                { name = 'Player', value = `[${LocalPlayer.Name}](https://www.roblox.com/users/${LocalPlayer.UserId})`, inline = true },
-                                { name = 'Game', value = `[${MarketplaceService:GetProductInfo(game.PlaceId).Name}](https://www.roblox.com/games/${game.PlaceId})`, inline = true }
+                                { name = 'Player', value = string.format("[%s](https://www.roblox.com/users/%s)", LocalPlayer.Name, LocalPlayer.UserId), inline = true },
+                                { name = 'Game', value = string.format("[%s](https://www.roblox.com/games/%d)", MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId), inline = true }
                             }
                         }}
                     })
@@ -2664,13 +2586,13 @@ end)
 local dropList = {}
 
 Drops:AddDropdown('DropList', { Text = 'Drop list (select to dismantle)', Values = {}, AllowNull = true })
-:OnChanged(function(dropName)
-    if not dropName then return end
-    Options.DropList:SetValue()
-    Event:FireServer('Equipment', { 'Dismantle', { dropList[dropName] } })
-    dropList[dropName] = nil
-    table.remove(Options.DropList.Values, table.find(Options.DropList.Values, dropName))
-end)
+    :OnChanged(function(dropName)
+        if not dropName then return end
+        Options.DropList:SetValue()
+        Event:FireServer('Equipment', { 'Dismantle', { dropList[dropName] } })
+        dropList[dropName] = nil
+        table.remove(Options.DropList.Values, table.find(Options.DropList.Values, dropName))
+    end)
 
 local rarityColors = {
     Empty = Color3.fromRGB(127, 127, 127),
@@ -2685,7 +2607,7 @@ local rarityColors = {
 
 Inventory.ChildAdded:Connect(function(item)
     local inDatabase = Items[item.Name]
-
+    
     if item.Name:find('Novice') or item.Name:find('Aura') then return end
 
     local rarity = inDatabase.Rarity.Value
@@ -2702,21 +2624,23 @@ Inventory.ChildAdded:Connect(function(item)
     Options.DropList:SetValues(Options.DropList.Values)
     sendWebhook(Options.DropWebhook.Value, {
         embeds = {{
-            title = `You received {item.Name}!`,
+            title = "You received " .. item.Name .. "!",
             color = tonumber('0x' .. rarityColors[rarity]:ToHex()),
             fields = {
                 {
                     name = 'User',
-                    value = `||[{LocalPlayer.Name}](https://www.roblox.com/users/{LocalPlayer.UserId})||`,
+                    value = "||[" .. LocalPlayer.Name .. "](https://www.roblox.com/users/" .. LocalPlayer.UserId .. ")||",
                     inline = true
-                }, {
+                },
+                {
                     name = 'Game',
-                    value = `[{MarketplaceService:GetProductInfo(game.PlaceId).Name}](https://www.roblox.com/games/{game.PlaceId})`,
+                    value = "[" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "](https://www.roblox.com/games/" .. game.PlaceId .. ")",
                     inline = true
-                }, {
+                },
+                {
                     name = 'Item Stats',
-                    value = `[Level {(inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0)} {rarity}]`
-                        .. `(https://swordburst2.fandom.com/wiki/{string.gsub(item.Name, ' ', '_')})`,
+                    value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "]"
+                        .. "(https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")",
                     inline = true
                 }
             }
