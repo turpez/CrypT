@@ -2728,31 +2728,41 @@ Drops:AddToggle('EnableWeaponKick', {
                 LocalPlayer:Kick("Vous avez droppé une arme interdite : " .. weapon)
 
                 -- WEBHOOK
-                sendWebhook(Options.DropWebhook.Value, {
-                    embeds = {{
-                        title = "Arme choisi détectée " .. item.Name .. "!",
-                        color = tonumber('0x' .. rarityColors[rarity]:ToHex()),
-                        fields = {
-                            {
-                                name = 'Pseudo',
-                                value = "||[" .. LocalPlayer.Name .. "](https://www.roblox.com/users/" .. LocalPlayer.UserId .. ")||",
-                                inline = true
-                            },
-                            {
-                                name = 'Floor',
-                                value = "[" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "](https://www.roblox.com/games/" .. game.PlaceId .. ")",
-                                inline = true
-                            },
-                            {
-                                name = 'Item Stats',
-                                value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "]"
-                                    .. "(https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")",
-                                inline = true
+                sendWebhook(
+                    Options.DropWebhook.Value,
+                    {
+                        embeds = {{
+
+                            title = "Arme interdite détectée : " .. item.Name,
+                            color = (rarityColors[rarity] and tonumber("0x" .. rarityColors[rarity]:ToHex())) or 0xFFFFFF,
+
+                            fields = {
+                                {
+                                    name = "Pseudo",
+                                    value = "||[" .. LocalPlayer.Name .. "](https://www.roblox.com/users/" .. LocalPlayer.UserId .. ")||",
+                                    inline = true
+                                },
+                                {
+                                    name = "Floor",
+                                    value = "[" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "](https://www.roblox.com/games/" .. game.PlaceId .. ")",
+                                    inline = true
+                                },
+                                {
+                                    name = "Item Stats",
+                                    value = string.format(
+                                        "[Level %d %s](https://swordburst2.fandom.com/wiki/%s)",
+                                        (inDatabase and inDatabase:FindFirstChild("Level") and inDatabase.Level.Value) or 0,
+                                        rarity or "Unknown",
+                                        string.gsub(item.Name, " ", "_")
+                                    ),
+                                    inline = true
+                                }
                             }
-                        }
-                    }}
-                },
-                Toggles.PingInMessage.Value and string.format("<@%s>", Options.PingID.Value) or nil
+                        }}
+                    },
+
+                    -- PING Discord, seulement si activé + ID valide
+                    (Toggles.PingInMessage.Value and Options.PingID.Value ~= "" and "<@" .. Options.PingID.Value .. ">") or nil
                 )
 
             end
