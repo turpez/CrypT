@@ -2727,39 +2727,58 @@ Drops:AddToggle('EnableWeaponKick', {
                 -- KICK
                 LocalPlayer:Kick("Vous avez droppé une arme interdite : " .. weapon)
 
-                -- WEBHOOK
+                ---------------------------------------------------------------------
+                -- 📌 ENVOI WEBHOOK (STYLE SB2 — AVEC RARETÉ, ITEM STATS, COULEURS)
+                ---------------------------------------------------------------------
+
+                -- Récupère infos de la database Swordburst 2
+                local inDatabase = Items[item.Name]
+                local rarity = inDatabase and inDatabase:FindFirstChild("Rarity")
+                                and inDatabase.Rarity.Value or "Common"
+
+                -- Convertir couleur de la rareté
+                local colorHex = "0x" .. rarityColors[rarity]:ToHex()
+
                 sendWebhook(Options.DropWebhook.Value, {
                     embeds = {{
-                        title = "Arme choisi détectée",
-                        description = string.format(
-                            "Le joueur **%s** a été kick pour avoir droppé **%s**.",
-                            LocalPlayer.Name, weapon
-                        ),
-                        color = 0xFF0000,
+                        title = "🚫 Arme interdite détectée : **" .. item.Name .. "**",
+                        color = tonumber(colorHex),
                         fields = {
                             {
-                                name = "Joueur",
-                                value = string.format("[%s](https://www.roblox.com/users/%s)",
-                                LocalPlayer.Name, LocalPlayer.UserId),
+                                name = "👤 Joueur",
+                                value = "||[" .. LocalPlayer.Name .. "](https://www.roblox.com/users/" .. LocalPlayer.UserId .. ")||",
                                 inline = true
                             },
                             {
-                                name = "Jeu",
-                                value = string.format("[%s](https://www.roblox.com/games/%d)",
-                                MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
+                                name = "🎮 Jeu",
+                                value = "[" .. MarketplaceService:GetProductInfo(game.PlaceId).Name
+                                     .. "](https://www.roblox.com/games/" .. game.PlaceId .. ")",
+                                inline = true
+                            },
+                            {
+                                name = "📊 Statistiques de l'objet",
+                                value = "[Level "
+                                        .. (inDatabase and inDatabase:FindFirstChild("Level")
+                                            and inDatabase.Level.Value or 0)
+                                        .. " " .. rarity .. "]"
+                                        .. "(https://swordburst2.fandom.com/wiki/"
+                                        .. string.gsub(item.Name, " ", "_") .. ")",
                                 inline = true
                             }
                         }
                     }}
                 },
-                Toggles.PingInMessage.Value and string.format("<@%s>", Options.PingID.Value) or nil
+                -- Ping ? Oui seulement si activé
+                Toggles.PingInMessage.Value and ("<@" .. Options.PingID.Value .. ">") or nil
                 )
+
+                ---------------------------------------------------------------------
 
             end
         end
     end
 
-    -- Connexion à Inventory
+    -- Connexion aux drops
     Inventory.ChildAdded:Connect(checkWeaponDrop)
 
 end)
