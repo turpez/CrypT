@@ -2693,12 +2693,12 @@ end
 
 -- Ajouter un dropdown pour choisir l'arme à détecter pour l'auto-kick
 Drops:AddDropdown('WeaponToKick', {
-    Text = 'Sélectionner l\'arme pour kick au drop',
-    Values = getWeaponsForCurrentFloor(),  -- Affiche les armes de l'étage actuel
+    Text = 'Sélectionner les armes à kicker',
+    Values = { "Light Greatsword", "Shizen Katana", "Ruined Longsword", "Brass Heavyweight", "Darkheart" }, -- Exemple d'armes à choisir
+    Multi = true,  -- Permet de sélectionner plusieurs armes
     AllowNull = true
-}):OnChanged(function(selectedWeapon)
-    -- Sauvegarde l'arme choisie pour le kick
-    Options.WeaponToKick:SetValue(selectedWeapon)
+}):OnChanged(function(selectedWeapons)
+    Options.WeaponToKick:SetValue(selectedWeapons)  -- Sauvegarde les armes sélectionnées
 end)
 
 Drops:AddToggle('EnableWeaponKick', {
@@ -2706,7 +2706,7 @@ Drops:AddToggle('EnableWeaponKick', {
     Default = false
 }):OnChanged(function(value)
     if value then
-        -- Fonction pour vérifier l'arme dans l'inventaire et la comparer à celles sélectionnées dans la liste des drops
+        -- Fonction pour vérifier l'arme dans l'inventaire et la comparer à celle sélectionnée dans la liste des drops
         local function checkWeaponDrop(item)
             local selectedWeapons = Options.WeaponToKick.Value  -- Récupère les armes sélectionnées
 
@@ -2719,7 +2719,7 @@ Drops:AddToggle('EnableWeaponKick', {
                     -- Kick le joueur si l'arme correspond à celle sélectionnée
                     LocalPlayer:Kick("Vous avez droppé l'arme : " .. weapon)
 
-                    -- Envoi du message via webhook avec un ping si nécessaire
+                    -- Envoi du message via webhook
                     sendWebhook(Options.DropWebhook.Value, {
                         embeds = {{
                             title = 'Vous avez droppé une arme que vous avez sélectionnée',
