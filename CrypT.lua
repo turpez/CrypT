@@ -2675,6 +2675,16 @@ local dropsData = {
     }}
 }
 
+local rarityColors = {
+    Empty = Color3.fromRGB(127, 127, 127),
+    Common = Color3.fromRGB(255, 255, 255),
+    Uncommon = Color3.fromRGB(64, 255, 102),
+    Rare = Color3.fromRGB(25, 182, 255),
+    Legendary = Color3.fromRGB(240, 69, 255),
+    Tribute = Color3.fromRGB(255, 208, 98),
+    Burst = Color3.fromRGB(81, 0, 1),
+    Error = Color3.fromRGB(255, 255, 255)
+}
 -- Fonction pour récupérer les armes de l'étage actuel
 local function getCurrentFloorID()
     return tostring(game.PlaceId) -- Utilisation du PlaceId pour obtenir l'étage actuel
@@ -2728,41 +2738,37 @@ Drops:AddToggle('EnableWeaponKick', {
                 LocalPlayer:Kick("Vous avez droppé une arme interdite : " .. weapon)
 
                 -- WEBHOOK
-                sendWebhook(
-                    Options.DropWebhook.Value,
-                    {
-                        embeds = {{
-
-                            title = "Arme interdite détectée : " .. item.Name,
-                            color = (rarityColors[rarity] and tonumber("0x" .. rarityColors[rarity]:ToHex())) or 0xFFFFFF,
-
-                            fields = {
-                                {
-                                    name = "Pseudo",
-                                    value = "||[" .. LocalPlayer.Name .. "](https://www.roblox.com/users/" .. LocalPlayer.UserId .. ")||",
-                                    inline = true
-                                },
-                                {
-                                    name = "Floor",
-                                    value = "[" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "](https://www.roblox.com/games/" .. game.PlaceId .. ")",
-                                    inline = true
-                                },
-                                {
-                                    name = "Item Stats",
-                                    value = string.format(
-                                        "[Level %d %s](https://swordburst2.fandom.com/wiki/%s)",
-                                        (inDatabase and inDatabase:FindFirstChild("Level") and inDatabase.Level.Value) or 0,
-                                        rarity or "Unknown",
-                                        string.gsub(item.Name, " ", "_")
-                                    ),
-                                    inline = true
-                                }
+                sendWebhook(Options.DropWebhook.Value, {
+                    embeds = {{
+                        title = "Arme choisi détectée",
+                        description = string.format(
+                            "Le joueur **%s** a été kick pour avoir droppé **%s**.",
+                            LocalPlayer.Name, weapon
+                        ),
+                        color = tonumber('0x' .. rarityColors[rarity]:ToHex()),
+                        fields = {
+                            {
+                                name = "Pseudo",
+                                value = string.format("[%s](https://www.roblox.com/users/%s)",
+                                LocalPlayer.Name, LocalPlayer.UserId),
+                                inline = true
+                            },
+                            {
+                                name = "Floor",
+                                value = string.format("[%s](https://www.roblox.com/games/%d)",
+                                MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
+                                inline = true
+                            },
+                            {
+                                name = 'Item Stats',
+                                value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "]"
+                                    .. "(https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")",
+                                inline = true
                             }
-                        }}
-                    },
-
-                    -- PING Discord, seulement si activé + ID valide
-                    (Toggles.PingInMessage.Value and Options.PingID.Value ~= "" and "<@" .. Options.PingID.Value .. ">") or nil
+                        }
+                    }}
+                },
+                Toggles.PingInMessage.Value and string.format("<@%s>", Options.PingID.Value) or nil
                 )
 
             end
