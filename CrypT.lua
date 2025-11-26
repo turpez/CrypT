@@ -2693,12 +2693,13 @@ end
 
 -- Ajouter un dropdown pour choisir l'arme à détecter pour l'auto-kick
 Drops:AddDropdown('WeaponToKick', {
-    Text = 'Sélectionner les armes à kicker',
-    Values = { "Light Greatsword", "Shizen Katana", "Ruined Longsword", "Brass Heavyweight", "Darkheart" }, -- Exemple d'armes à choisir
+    Text = 'Sélectionner l\'arme pour kick au drop',
+    Values = getWeaponsForCurrentFloor(),  -- Affiche les armes de l'étage actuel
     Multi = true,  -- Permet de sélectionner plusieurs armes
     AllowNull = true
-}):OnChanged(function(selectedWeapons)
-    Options.WeaponToKick:SetValue(selectedWeapons)  -- Sauvegarde les armes sélectionnées
+}):OnChanged(function(selectedWeapon)
+    -- Sauvegarde l'arme choisie pour le kick
+    Options.WeaponToKick:SetValue(selectedWeapons)
 end)
 
 Drops:AddToggle('EnableWeaponKick', {
