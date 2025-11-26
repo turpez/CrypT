@@ -2499,6 +2499,168 @@ Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
+-- Liste de drops et armes par étage
+local dropsData = {
+    ["540240728"] = {
+        name = "Arcadia",
+        drops = {"Rainbow Rusty Rapier", "Spoon Powa"}
+    },
+    ["542351431"] = {
+        name = "Floor 1 / Virhst Woodlands",
+        drops = {
+            "Light Greatsword", "Shizen Katana", "Ruined Longsword", "Brass Heavyweight", 
+            "Darkheart", "Kobold Spear", "Uncommon Upgrade Crystal", "Upgrade Protection Scroll"
+        }
+    },
+    ["548231754"] = {
+        name = "Floor 2 / Redveil Grove",
+        drops = {
+            "Noir Sunset", "Gem Blade", "Estranged Blade", "Pearl Enguarde", "Dusty Robe",
+            "Cyclone Blade", "Autumn Bulk", "Redguard Shield", "Rare Upgrade Crystal", "Legendary Upgrade Crystal"
+        }
+    },
+    ["555980327"] = {
+        name = "Floor 3 / Avalanche Expanse",
+        drops = {
+            "Ethereal Edge", "Rusty Longsword", "Silverlight Hypo", "Chilling Edge", "Hefty Coat",
+            "Deep Freeze", "Frost Bite", "Celeste", "Rare Upgrade Crystal", "Upgrade Protection Scroll"
+        }
+    },
+    ["572487908"] = {
+        name = "Floor 4 / Hidden Wilds",
+        drops = {
+            "Anduril Pirate's Coat", "Storm Breaker", "Florance", "Clover Shield", "Health Regen Necklace",
+            "Rare Upgrade Crystal", "Legendary Upgrade Crystal"
+        }
+    },
+    ["580239979"] = {
+        name = "Floor 5 / Desolate Dunes",
+        drops = {
+            "Sandstone Rapier", "Golden Blade", "Aurum Claw", "Rock Claymore", "Sabaku Desert Shroud",
+            "Sandstorm Ruby Pillar", "Sunray Buster", "Stamina Regen Necklace", "Legendary Upgrade Crystal"
+        }
+    },
+    ["566212942"] = {
+        name = "Floor 6 / Helmfirth",
+        drops = {"Common Upgrade Crystal", "Uncommon Upgrade Crystal", "Upgrade Protection Scroll"}
+    },
+    ["582198062"] = {
+        name = "Floor 7 / Entoloma Gloomlands",
+        drops = {"Blossom Slicer", "Elysium", "Blossom Piercer", "Deadlock", "Hippolyta", "Ivory Titan"}
+    },
+    ["548878321"] = {
+        name = "Floor 8 / Blooming Plateau",
+        drops = {
+            "Sakura's Demise", "Spirit Blossom", "Lord's Warcry", "Sakura's Embrace", "Sakura Paradise", "Abyss Sentinel"
+        }
+    },
+    ["573267292"] = {
+        name = "Floor 9 / Va' Rok",
+        drops = {
+            "Ocean Royal King's Current", "Artic Reptide", "Crimson Current", "Aqualis Guardian", "Water Blast",
+            "Reef's Revenge", "Siren's Harvester", "Oceans Melody", "Crimson Tide"
+        }
+    },
+    ["2659143505"] = {
+        name = "Floor 10 / Transylvania",
+        drops = {"Bone Reaper", "Dark Star", "Angel's Tears", "Killer's Cloak", "Top Hat"}
+    },
+    ["5287433115"] = {
+        name = "Floor 11 / Hypersiddia",
+        drops = {
+            "Z Striker", "Doomslayer", "Solar Beam", "Hyperslicer", "Accel Alpha", "Accel Zulu", 
+            "Energy Blade (Blue)", "Cybertana", "Energy Blade (Purple)"
+        }
+    },
+    ["6144637080"] = {
+        name = "Floor 12 / Sector-235",
+        drops = {"Rare Upgrade Crystal", "Legendary Upgrade Crystal", "Upgrade Protection Scroll"}
+    },
+    ["13965775911"] = {
+        name = "Atheon",
+        drops = {
+            "Rapture", "Exodus", "Judgement", "Laevateinn", "Gungnir", "Infernum", "Loricam", 
+            "Holy Ember", "Geryon", "Undying Flame Essence", "Meteor Shot"
+        }
+    },
+    ["16810524216"] = {
+        name = "Eternal Garden",
+        drops = {"Petal Slasher", "Sakura Dreams", "Lightbane", "Brownthorn", "Caelum", "Verun", "Sakura Cleaver", "Shiver"}
+    },
+    ["134019705603409"] = {
+        name = "Atlantis",
+        drops = {
+            "Midnight Relic", "Coral Strike", "Aurelite Vanguard", "Eyes Deep", "Tide Breaker", "Water Bane",
+            "Glacial Fin", "Mirthtide Marauder", "Ocean Claw", "Poseidon's Aegis"
+        }
+    }
+}
+
+-- Fonction pour récupérer les armes de l'étage actuel
+local function getWeaponsForCurrentFloor()
+    local currentFloorID = tostring(getCurrentFloorID()) -- Remplace cette fonction par la logique exacte de récupération de l'étage
+    local currentFloor = dropsData[currentFloorID]
+    
+    if currentFloor then
+        return currentFloor.drops
+    else
+        return {}
+    end
+end
+
+-- Ajouter un dropdown pour choisir l'arme à détecter pour l'auto-kick
+Drops:AddDropdown('WeaponToKick', {
+    Text = 'Select weapon to kick on equip',
+    Values = getWeaponsForCurrentFloor(),  -- Affiche les armes de l'étage actuel
+    AllowNull = true
+}):OnChanged(function(selectedWeapon)
+    -- Sauvegarde l'arme choisie pour le kick
+    Options.WeaponToKick:SetValue(selectedWeapon)
+end)
+
+Drops:AddToggle('EnableWeaponKick', {
+    Text = 'Enable weapon kick',
+    Default = false
+}):OnChanged(function(value)
+    if value then
+        local function checkWeaponInInventory()
+            local selectedWeapon = Options.WeaponToKick.Value
+            if selectedWeapon then
+                -- Vérifie si l'arme est dans l'inventaire
+                local weaponInInventory = false
+                for _, item in next, Inventory:GetChildren() do
+                    if item.Name == selectedWeapon then
+                        weaponInInventory = true
+                        break
+                    end
+                end
+
+                if weaponInInventory then
+                    -- Kick le joueur si l'arme est dans l'inventaire
+                    LocalPlayer:Kick("You have equipped the restricted weapon: " .. selectedWeapon)
+
+                    -- Envoi du message via webhook
+                    sendWebhook(Options.DropWebhook.Value, {
+                        embeds = {{
+                            title = 'Weapon Kick!',
+                            description = `Player {LocalPlayer.Name} was kicked for equipping {selectedWeapon}`,
+                            color = 0xFF0000,
+                            fields = {
+                                { name = 'Player', value = `[${LocalPlayer.Name}](https://www.roblox.com/users/${LocalPlayer.UserId})`, inline = true },
+                                { name = 'Game', value = `[${MarketplaceService:GetProductInfo(game.PlaceId).Name}](https://www.roblox.com/games/${game.PlaceId})`, inline = true }
+                            }
+                        }}
+                    })
+                end
+            end
+        end
+
+        -- Vérifie l'inventaire lorsqu'un item est ajouté
+        Inventory.ChildAdded:Connect(checkWeaponInInventory)
+    end
+end)
+
+-- Traitement de la liste des drops
 local dropList = {}
 
 Drops:AddDropdown('DropList', { Text = 'Drop list (select to dismantle)', Values = {}, AllowNull = true })
