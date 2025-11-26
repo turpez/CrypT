@@ -1,20 +1,6 @@
 if getgenv().CrypT then return end
 getgenv().CrypT = true
 
--- Load JSON Data
-local HttpService = game:GetService("HttpService")
-
-local dropsData = {}
-local modsData = {}
-
-if isfile("CrypT/drops.json") then
-    dropsData = HttpService:JSONDecode(readfile("CrypT/drops.json"))
-end
-
-if isfile("CrypT/mods.json") then
-    modsData = HttpService:JSONDecode(readfile("CrypT/mods.json"))
-end
-
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
@@ -27,6 +13,26 @@ local Function = ReplicatedStorage:WaitForChild('Function')
 if game.PlaceId == 659222129 then -- Main menu
     Function:InvokeServer('Login')
     return
+end
+
+-- Charger le fichier JSON pour le floor actuel
+local function loadFloorDrops()
+    local filePath = "floor_drops.json"
+    local floorData = {}
+
+    if isfile(filePath) then
+        local fileContents = readfile(filePath)
+        floorData = game:GetService('HttpService'):JSONDecode(fileContents)
+    end
+
+    return floorData
+end
+
+-- Sauvegarder le fichier JSON
+local function saveFloorDrops(floorData)
+    local filePath = "floor_drops.json"
+    local jsonData = game:GetService('HttpService'):JSONEncode(floorData)
+    writefile(filePath, jsonData)
 end
 
 local queue_on_teleport = (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport) or queue_on_teleport
@@ -78,6 +84,34 @@ local sendTestMessage = function(url)
     )
 end
 
+-- Charger le fichier JSON pour le floor actuel
+local function loadFloorDrops()
+    local filePath = "floor_drops.json"
+    local floorData = {}
+
+    if isfile(filePath) then
+        local fileContents = readfile(filePath)
+        floorData = game:GetService('HttpService'):JSONDecode(fileContents)
+    end
+
+    return floorData
+end
+
+-- Sauvegarder les objets sélectionnés dans le fichier JSON
+local function saveFloorDrops(selectedItems)
+    local filePath = "floor_drops.json"
+    local floorData = loadFloorDrops()
+    
+    -- Ajouter ou mettre à jour les items surveillés
+    floorData[tostring(game.PlaceId)] = {
+        name = game.PlaceId,  -- Utilise un nom de floor basé sur l'ID du jeu
+        drops = selectedItems
+    }
+    
+    local jsonData = game:GetService('HttpService'):JSONEncode(floorData)
+    writefile(filePath, jsonData)
+end
+
 local Players = game:GetService('Players')
 local LocalPlayer = Players.LocalPlayer
 if not LocalPlayer then
@@ -104,20 +138,6 @@ local Profile = Profiles:WaitForChild(LocalPlayer.Name)
 local Inventory = Profile:WaitForChild('Inventory')
 local AnimPacks = Profile:WaitForChild('AnimPacks')
 local Equip = Profile:WaitForChild('Equip')
-
-Inventory.ChildAdded:Connect(function(item)
-    task.wait(0.1)
-
-    local selected = Options.DropSelector.Value
-    if not selected then return end
-
-    local itemName = item.Name
-
-    if selected[itemName] then
-        -- Kick like the automod
-        LocalPlayer:Kick("Protected drop detected: " .. itemName)
-    end
-end)
 
 local Exp = Profile:WaitForChild('Stats'):WaitForChild('Exp')
 local getLevel = function(value)
@@ -741,6 +761,53 @@ Autofarm:AddSlider('AutofarmRadius', {
 Autofarm:AddToggle('UseWaypoint', { Text = 'Use waypoint' }):OnChanged(function(value)
     waypoint.CFrame = HumanoidRootPart.CFrame
     waypointLabel.Visible = value
+end)
+
+-- Ajouter un bouton pour activer/désactiver l'option de surveillance des drops
+Autofarm:AddToggle('EnableFloorDropWatch', { Text = 'Enable Drop Watch' }):OnChanged(function(value)
+    Toggles.EnableDropWatch = value
+end)
+
+-- Ajouter un menu déroulant pour les objets à surveiller
+Autofarm:AddDropdown('FloorDrops', {
+    Text = 'Select Items to Watch for Drop',
+    Values = {}, -- Ceci sera rempli avec les objets du floor actuel
+    Multi = true,
+    AllowNull = true
+})
+
+-- Ajouter un bouton pour activer/désactiver l'option de surveillance des drops
+Autofarm:AddToggle('EnableFloorDropWatch', { Text = 'Enable Drop Watch' }):OnChanged(function(value)
+    Toggles.EnableDropWatch = value
+end)
+
+-- Fonction pour mettre à jour le menu déroulant avec les objets du floor actuel
+local function updateFloorItemsDropdown(floorId)
+    local items = getFloorItems(floorId)
+    Autofarm:UpdateDropdown('FloorDrops', {
+        Values = items
+    })
+end
+
+-- Exemple : Mettre à jour les objets pour le floor actuel (par exemple, floor 1)
+local currentFloorId = game.PlaceId  -- Remplacer par l'ID du floor actuel
+updateFloorItemsDropdown(currentFloorId)
+
+local selectedItems = {}
+
+Autofarm:OnDropdownChange('FloorDrops', function(value)
+    selectedItems = value
+    saveFloorDrops(selectedItems)  -- Sauvegarder la sélection des items
+end)
+
+-- Fonction pour surveiller les drops
+game:GetService('Workspace').ChildAdded:Connect(function(child)
+    if Toggles.EnableDropWatch then
+        if table.find(selectedItems, child.Name) then
+            -- Si l'item est dans la liste sélectionnée, on kick le joueur (ou autre action)
+            LocalPlayer:Kick("Vous avez été expulsé pour avoir dropé un item surveillé")
+        end
+    end
 end)
 
 local mobList = (function()
@@ -1801,17 +1868,6 @@ end
 
 local AdditionalCheats = Main:AddRightGroupbox('Additional cheats')
 
-local currentFloor = game.PlaceId
-local floorDrops = dropsData[tostring(currentFloor)] or {}
-
-local DropUI = Main:AddRightGroupbox("Drop Protection")
-
-DropUI:AddDropdown("DropSelector", {
-    Text = "Select drops to block",
-    Values = floorDrops,
-    Multi = true,
-})
-
 if RequiredServices then
     local SetSprintingOld = RequiredServices.Actions.SetSprinting
     RequiredServices.Actions.SetSprinting = function(enabled)
@@ -2657,27 +2713,120 @@ local KickBox = Misc:AddLeftTabbox()
 
 local ModDetector = KickBox:AddTab('Mods')
 
-local HttpService = game:GetService("HttpService")
-
--- Fonction pour charger les données du fichier JSON
-local function loadModsData()
-    local modsData = {}
-    local filePath = "CrypT/mods.json"  -- Assure-toi que le chemin du fichier est correct
-    local fileContent = readfile(filePath)  -- Lis le contenu du fichier
-    if fileContent then
-        modsData = HttpService:JSONDecode(fileContent)  -- Décode le JSON dans une table Lua
-    end
-    return modsData.moderators  -- Renvoie la liste des modérateurs
-end
-
--- Charger la liste des modérateurs depuis le fichier mods.json
-local mods = loadModsData()
-
--- Exemple d'utilisation de la liste des mods dans ton script
-print("Liste des modérateurs :")
-for _, modId in ipairs(mods) do
-    print(modId)  -- Affiche l'ID de chaque modérateur
-end
+local mods = {
+    12671,
+    4402987,
+    7858636,
+    13444058,
+    24156180,
+    35311411,
+    38559058,
+    45035796,
+    48662268,
+    50879012,
+    51696441,
+    55715138,
+    57436909,
+    59341698,
+    60673083,
+    62240513,
+    66489540,
+    68210875,
+    72480719,
+    75043989,
+    76999375,
+    81113783,
+    90258662,
+    93988508,
+    101291900,
+    102706901,
+    104541778,
+    109105759,
+    111051084,
+    121104177,
+    129806297,
+    151751026,
+    154847513,
+    154876159,
+    161577703,
+    161949719,
+    163733925,
+    167655046,
+    167856414,
+    173116569,
+    184366742,
+    194755784,
+    220726786,
+    225179429,
+    269112100,
+    271388254,
+    309775741,
+    349854657,
+    354326302,
+    357870914,
+    358748060,
+    367879806,
+    371108489,
+    373676463,
+    429690599,
+    434696913,
+    440458342,
+    448343431,
+    454205259,
+    455293249,
+    461121215,
+    478848349,
+    500009807,
+    533787513,
+    542470517,
+    571218846,
+    575623917,
+    630696850,
+    810458354,
+    852819491,
+    874771971,
+    918971121,
+    1033291447,
+    1033291716,
+    1058240421,
+    1099119770,
+    1114937945,
+    1190978597,
+    1266604023,
+    1379309318,
+    1390415574,
+    1416070243,
+    1584345084,
+    1607227678,
+    1648776562,
+    1650372835,
+    1666720713,
+    1728535349,
+    1785469599,
+    1794965093,
+    1801714748,
+    1868318363,
+    1998442044,
+    2034822362,
+    2216826820,
+    2324028828,
+    2462374233,
+    2787915712,
+    360470140,
+    2475151189,
+    3522932153,
+    3772282131,
+    7557087747,
+    5536587740,
+    3931735673,
+    33903799,
+    22026533,
+    417576199,
+    80692318,
+    102583875,
+    492574273,
+    468344010,
+}
 
 ModDetector:AddToggle('Autokick', { Text = 'Autokick' })
 ModDetector:AddSlider('KickDelay', { Text = 'Kick delay', Default = 30, Min = 0, Max = 60, Rounding = 0, Suffix = 's', Compact = true })
