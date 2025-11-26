@@ -2693,7 +2693,7 @@ end
 
 -- Ajouter un dropdown pour choisir l'arme à détecter pour l'auto-kick
 Drops:AddDropdown('WeaponToKick', {
-    Text = 'Sélectionner l\'arme pour kick au drop',
+    Text = 'Sélectionner l\'arme à drop pour être kick',
     Values = getWeaponsForCurrentFloor(),  -- Affiche les armes de l'étage actuel
     AllowNull = true
 }):OnChanged(function(selectedWeapon)
@@ -2702,45 +2702,60 @@ Drops:AddDropdown('WeaponToKick', {
 end)
 
 Drops:AddToggle('EnableWeaponKick', {
-    Text = 'Activer le kick pour l\'arme sélectionnée',
+    Text = 'Activer le kick d\'arme',
     Default = false
 }):OnChanged(function(value)
     if value then
-        -- Fonction pour vérifier l'arme dans l'inventaire et la comparer à celle sélectionnée dans la liste des drops
-        local function checkWeaponDrop(item)
+        local function checkWeaponInInventory()
             local selectedWeapon = Options.WeaponToKick.Value
+            if selectedWeapon then
+                -- Vérifie si l'arme est dans l'inventaire
+                local weaponInInventory = false
+                for _, item in next, Inventory:GetChildren() do
+                    if item.Name == selectedWeapon then
+                        weaponInInventory = true
+                        break
+                    end
+                end
 
-            -- Si aucune arme n'est sélectionnée, on ne fait rien
-            if not selectedWeapon then return end
+                if weaponInInventory then
+                    -- Kick le joueur si l'arme est dans l'inventaire
+                    LocalPlayer:Kick("Tu as drop l'arme selectionné : " .. selectedWeapon)
 
-            -- Vérifie si l'item dropé correspond à l'arme sélectionnée
-            if item.Name == selectedWeapon then
-                -- Kick le joueur si l'arme correspond à celle sélectionnée
-                LocalPlayer:Kick("Vous avez droppé l\'arme: " .. selectedWeapon)
-
-                -- Envoi du message via webhook
-                sendWebhook(Options.DropWebhook.Value, {
-                    embeds = {{
-                        title = 'Vous avez droppé une arme que vous avez selectionnée',
-                        description = string.format("Le joueur %s a été kické pour avoir droppé l'arme %s", LocalPlayer.Name, selectedWeapon),
-                        color = 0xFF0000,
-                        fields = {
-                            { name = 'Player', value = string.format("[%s](https://www.roblox.com/users/%s)", LocalPlayer.Name, LocalPlayer.UserId), inline = true },
-                            { name = 'Game', value = string.format("[%s](https://www.roblox.com/games/%d)", MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId), inline = true },
-                            { name = 'Item Stats', value = "[Level " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "](https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")", inline = true }
-                        }
-                    }}
-                }, Toggles.PingInMessage.Value and "<@" .. Options.PingID.Value .. ">" or nil)
+                    -- Envoi du message via webhook
+                    sendWebhook(Options.DropWebhook.Value, {
+                        embeds = {{
+                            title = "L'arme sélectionnée a été drop",
+                            description = "Le joueur " .. LocalPlayer.Name .. " a été kické pour avoir équipé l'arme " .. selectedWeapon,
+                            color = 0xFF0000,
+                            fields = {
+                                {
+                                    name = 'Joueur',
+                                    value = "||[" .. LocalPlayer.Name .. "](https://www.roblox.com/users/" .. LocalPlayer.UserId .. ")||",
+                                    inline = true
+                                },
+                                {
+                                    name = 'Jeu',
+                                    value = "[" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "](https://www.roblox.com/games/" .. game.PlaceId .. ")",
+                                    inline = true
+                                },
+                                {
+                                    name = 'Stats de l\'arme',
+                                    value = "[Niveau " .. (inDatabase:FindFirstChild('Level') and inDatabase.Level.Value or 0) .. " " .. rarity .. "]"
+                                        .. "(https://swordburst2.fandom.com/wiki/" .. string.gsub(item.Name, ' ', '_') .. ")",
+                                    inline = true
+                                }
+                            }
+                        }}
+                    })
+                end
             end
         end
 
         -- Vérifie l'inventaire lorsqu'un item est ajouté
-        Inventory.ChildAdded:Connect(function(item)
-            checkWeaponDrop(item)  -- Vérifie si l'arme dans l'inventaire est celle sélectionnée dans la liste
-        end)
+        Inventory.ChildAdded:Connect(checkWeaponInInventory)
     end
 end)
-
 
 -- Traitement de la liste des drops
 local dropList = {}
