@@ -15,26 +15,6 @@ if game.PlaceId == 659222129 then -- Main menu
     return
 end
 
--- Charger le fichier JSON pour le floor actuel
-local function loadFloorDrops()
-    local filePath = "floor_drops.json"
-    local floorData = {}
-
-    if isfile(filePath) then
-        local fileContents = readfile(filePath)
-        floorData = game:GetService('HttpService'):JSONDecode(fileContents)
-    end
-
-    return floorData
-end
-
--- Sauvegarder le fichier JSON
-local function saveFloorDrops(floorData)
-    local filePath = "floor_drops.json"
-    local jsonData = game:GetService('HttpService'):JSONEncode(floorData)
-    writefile(filePath, jsonData)
-end
-
 local queue_on_teleport = (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport) or queue_on_teleport
 if queue_on_teleport then
     queue_on_teleport([[
@@ -82,34 +62,6 @@ local sendTestMessage = function(url)
             }}
         }, (Toggles.PingInMessage and Toggles.PingInMessage.Value)
     )
-end
-
--- Charger le fichier JSON pour le floor actuel
-local function loadFloorDrops()
-    local filePath = "floor_drops.json"
-    local floorData = {}
-
-    if isfile(filePath) then
-        local fileContents = readfile(filePath)
-        floorData = game:GetService('HttpService'):JSONDecode(fileContents)
-    end
-
-    return floorData
-end
-
--- Sauvegarder les objets sélectionnés dans le fichier JSON
-local function saveFloorDrops(selectedItems)
-    local filePath = "floor_drops.json"
-    local floorData = loadFloorDrops()
-    
-    -- Ajouter ou mettre à jour les items surveillés
-    floorData[tostring(game.PlaceId)] = {
-        name = game.PlaceId,  -- Utilise un nom de floor basé sur l'ID du jeu
-        drops = selectedItems
-    }
-    
-    local jsonData = game:GetService('HttpService'):JSONEncode(floorData)
-    writefile(filePath, jsonData)
 end
 
 local Players = game:GetService('Players')
@@ -761,53 +713,6 @@ Autofarm:AddSlider('AutofarmRadius', {
 Autofarm:AddToggle('UseWaypoint', { Text = 'Use waypoint' }):OnChanged(function(value)
     waypoint.CFrame = HumanoidRootPart.CFrame
     waypointLabel.Visible = value
-end)
-
--- Ajouter un bouton pour activer/désactiver l'option de surveillance des drops
-Autofarm:AddToggle('EnableFloorDropWatch', { Text = 'Enable Drop Watch' }):OnChanged(function(value)
-    Toggles.EnableDropWatch = value
-end)
-
--- Ajouter un menu déroulant pour les objets à surveiller
-Autofarm:AddDropdown('FloorDrops', {
-    Text = 'Select Items to Watch for Drop',
-    Values = {}, -- Ceci sera rempli avec les objets du floor actuel
-    Multi = true,
-    AllowNull = true
-})
-
--- Ajouter un bouton pour activer/désactiver l'option de surveillance des drops
-Autofarm:AddToggle('EnableFloorDropWatch', { Text = 'Enable Drop Watch' }):OnChanged(function(value)
-    Toggles.EnableDropWatch = value
-end)
-
--- Fonction pour mettre à jour le menu déroulant avec les objets du floor actuel
-local function updateFloorItemsDropdown(floorId)
-    local items = getFloorItems(floorId)
-    Autofarm:UpdateDropdown('FloorDrops', {
-        Values = items
-    })
-end
-
--- Exemple : Mettre à jour les objets pour le floor actuel (par exemple, floor 1)
-local currentFloorId = game.PlaceId  -- Remplacer par l'ID du floor actuel
-updateFloorItemsDropdown(currentFloorId)
-
-local selectedItems = {}
-
-Autofarm:OnDropdownChange('FloorDrops', function(value)
-    selectedItems = value
-    saveFloorDrops(selectedItems)  -- Sauvegarder la sélection des items
-end)
-
--- Fonction pour surveiller les drops
-game:GetService('Workspace').ChildAdded:Connect(function(child)
-    if Toggles.EnableDropWatch then
-        if table.find(selectedItems, child.Name) then
-            -- Si l'item est dans la liste sélectionnée, on kick le joueur (ou autre action)
-            LocalPlayer:Kick("Vous avez été expulsé pour avoir dropé un item surveillé")
-        end
-    end
 end)
 
 local mobList = (function()
