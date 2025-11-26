@@ -2703,18 +2703,6 @@ Drops:AddDropdown('WeaponToKick', {
     Options.WeaponToKick:SetValue(selected)
 end)
 
--- Dropdown MULTI correct
-Drops:AddDropdown('WeaponToKick', {
-    Text = "Sélectionner les armes à détecter",
-    Values = getWeaponsForCurrentFloor(),
-    Multi = true,
-    AllowNull = true
-})
-:OnChanged(function(selected)
-    print("Sélection :", selected)
-    Options.WeaponToKick:SetValue(selected)
-end)
-
 Drops:AddToggle('EnableWeaponKick', {
     Text = "Activer le kick pour les armes sélectionnées",
     Default = false
