@@ -2691,7 +2691,7 @@ local function getWeaponsForCurrentFloor()
     end
 end
 
--- Dropdown MULTI correct !!
+-- 📌 DROPDOWN MULTIPLE : sélection des armes du floor actuel
 Drops:AddDropdown('WeaponToKick', {
     Text = "Sélectionner les armes à détecter",
     Values = getWeaponsForCurrentFloor(),
@@ -2703,6 +2703,7 @@ Drops:AddDropdown('WeaponToKick', {
     Options.WeaponToKick:SetValue(selected)
 end)
 
+-- 📌 TOGGLE : activation du système d'auto-kick
 Drops:AddToggle('EnableWeaponKick', {
     Text = "Activer le kick pour les armes sélectionnées",
     Default = false
@@ -2711,55 +2712,78 @@ Drops:AddToggle('EnableWeaponKick', {
 
     if not enabled then return end
 
+    -- Fonction déclenchée quand un item est ajouté à l'inventaire
     local function checkWeaponDrop(item)
 
-        task.wait(0.1) -- Fiabilité
+        task.wait(0.1) -- Fiabilité anti-lag SB2
 
         local selected = Options.WeaponToKick.Value
         if not selected then return end
 
-        -- Vérifie chaque arme sélectionnée
+        -- Données item / Stats / Rareté
+        local inDatabase = Items[item.Name]
+        local rarity = inDatabase and inDatabase.Rarity.Value or "Common"
+        local color = rarityColors[rarity]
+            and tonumber("0x" .. rarityColors[rarity]:ToHex())
+            or 0xFFFFFF
+
+        -- Vérifie si l'item droppé est une arme interdite
         for weapon, isSelected in pairs(selected) do
             if isSelected and item.Name == weapon then
 
                 print("MATCH trouvé :", weapon)
 
-                -- KICK
+                -- 💀 Kick du joueur
                 LocalPlayer:Kick("Vous avez droppé une arme interdite : " .. weapon)
 
-                -- WEBHOOK
-                sendWebhook(Options.DropWebhook.Value, {
-                    embeds = {{
-                        title = "🚫 Arme interdite détectée",
-                        description = string.format(
-                            "Le joueur **%s** a été kick pour avoir droppé **%s**.",
-                            LocalPlayer.Name, weapon
-                        ),
-                        color = 0xFF0000,
-                        fields = {
-                            {
-                                name = "Joueur",
-                                value = string.format("[%s](https://www.roblox.com/users/%s)",
-                                LocalPlayer.Name, LocalPlayer.UserId),
-                                inline = true
-                            },
-                            {
-                                name = "Jeu",
-                                value = string.format("[%s](https://www.roblox.com/games/%d)",
-                                MarketplaceService:GetProductInfo(game.PlaceId).Name, game.PlaceId),
-                                inline = true
+                -- 📢 WEBHOOK DISCORD + COULEUR + STATS + PING
+                sendWebhook(
+                    Options.DropWebhook.Value,
+                    {
+                        embeds = {{
+                            title = "🚫 Arme interdite détectée : " .. item.Name,
+                            color = color,
+
+                            description = string.format(
+                                "Le joueur **%s** a été kick pour avoir droppé l'arme **%s**.",
+                                LocalPlayer.Name, weapon
+                            ),
+
+                            fields = {
+                                {
+                                    name = "Joueur",
+                                    value = "||[" .. LocalPlayer.Name ..
+                                        "](https://www.roblox.com/users/" .. LocalPlayer.UserId .. ")||",
+                                    inline = true
+                                },
+                                {
+                                    name = "Floor / Zone",
+                                    value = "[" .. MarketplaceService:GetProductInfo(game.PlaceId).Name ..
+                                        "](https://www.roblox.com/games/" .. game.PlaceId .. ")",
+                                    inline = true
+                                },
+                                {
+                                    name = "Item Stats",
+                                    value = "[Level " ..
+                                        (inDatabase and inDatabase.Level.Value or 0)
+                                        .. " " .. rarity .. "]"
+                                        .. "(https://swordburst2.fandom.com/wiki/"
+                                        .. string.gsub(item.Name, " ", "_") .. ")",
+                                    inline = true
+                                }
                             }
-                        }
-                    }}
-                },
-                Toggles.PingInMessage.Value and string.format("<@%s>", Options.PingID.Value) or nil
+                        }}
+                    },
+
+                    -- Ping Discord si activé
+                    Toggles.PingInMessage.Value and string.format("<@%s>", Options.PingID.Value) or nil
                 )
 
             end
         end
     end
 
-    -- Connexion à Inventory
+    -- 📌 Connexion au système d'inventaire (SB2)
     Inventory.ChildAdded:Connect(checkWeaponDrop)
 
 end)
