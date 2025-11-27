@@ -2295,10 +2295,18 @@ do
 
     function Inventory.GetOptions(...)
         local input = ...
+        local options = _G['GetOptions'](...)
+
         if type(input) == 'table' then
             _G['LastSelectedItem'] = input.item
         end
-        return _G['GetOptions'](...)
+
+        -- Force l'apparition du bouton "Equip"
+        if typeof(options) == "table" then
+            options.Equip = true
+        end
+
+        return options
     end
 
     function Inventory.HasRequiredLevel(...)
