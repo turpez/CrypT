@@ -2494,7 +2494,7 @@ Drops:AddInput('PingID', { Text = 'Ping ID', Placeholder = 'Ex: 9876543210987654
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
--- Liste des drops et armes par étage
+-- Liste des drops et armes par étage --
 local dropsData = {
     ["540240728"] = { name = "Arcadia", drops = {"Rainbow Rusty Rapier", "Spoon Powa"} },
     ["542351431"] = { name = "Floor 1 / Virhst Woodlands", drops = { 
