@@ -1436,8 +1436,14 @@ local onCooldown = {}
 local attack = function(target)
     if isDead(target) then return end
 
-    if target.Entity.Health:FindFirstChild(LocalPlayer.Name) then -- Toggles.UseSkillPreemptively.Value or
+    if target.Entity.Health:FindFirstChild(LocalPlayer.Name) then
+        -- Normal skill (sword skill)
         KillauraSkill.Use()
+
+        -- 🎯 Misc skill (Cursed Enhancement)
+        if MiscSkill._onKillauraSkill then
+            MiscSkill._onKillauraSkill()
+        end
     end
 
     if isDead(target) then return end
